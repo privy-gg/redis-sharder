@@ -63,7 +63,7 @@ export class GatewayClient extends Eris.Client {
         interval: 5000,
     }
 
-    getFirstShard: () => Promise<number>
+    getFirstShard: () => Promise<number> | number;
 
     private redisConnection: Redis.Redis | undefined;
     private redisLock: any;
@@ -106,7 +106,8 @@ export class GatewayClient extends Eris.Client {
 
         if (this.stats.enabled) {
             setInterval(async () => {
-                this.redisConnection?.set(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`, JSON.stringify({
+                // await this.redisConnection?.del(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`)
+                await this.redisConnection?.set(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`, JSON.stringify({
                     guilds: this.guilds.size,
                     users: this.users.size,
                     voice: this.voiceConnections.size,
@@ -116,7 +117,7 @@ export class GatewayClient extends Eris.Client {
                             id: s.id,
                         };
                     }),
-                }), 'EX', 100);
+                }), 'EX', 10);
 
                 // console.log(await this.redisConnection?.get(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`))
             }, this.stats.interval);
@@ -143,10 +144,7 @@ export class GatewayClient extends Eris.Client {
             };
         });
         this.on('shardReady', (id: number) => {
-            if (this.shards.filter((s: Eris.Shard) => s.status === 'ready').length === this.shards.size) {
-                // Lock.release(`shard:identify:${CLIENT_ID}`);
-                this.hasLock = false;
-            } else if (this.shards.find((s: Eris.Shard) => s.status === 'disconnected') && this.fullyStarted === true) {
+            if (this.shards.find((s: Eris.Shard) => s.status === 'disconnected') && this.fullyStarted === true) {
                 const shard: Eris.Shard | undefined = this.shards.find((s: Eris.Shard) => s.status === 'disconnected');
                 if (shard) shard.connect();
             };
@@ -155,6 +153,7 @@ export class GatewayClient extends Eris.Client {
 
     private async calculateThisShards(): Promise<number[]> {
         const firstShardID = await this.getFirstShard();
+        console.log([this.shardsPerCluster*firstShardID, this.shardsPerCluster*firstShardID+(this.shardsPerCluster-1)])
         return [this.shardsPerCluster*firstShardID, this.shardsPerCluster*firstShardID+(this.shardsPerCluster-1)];
     };
 
@@ -192,16 +191,14 @@ export class GatewayClient extends Eris.Client {
                 voice: 0,
                 shards: [],
             };
-            let keys:string[] = [];
     
             stream?.on('data', async (chunk: string[]) => {
                 stream.pause();
-                keys.concat(chunk);
                 const thing = chunk.map(async (key: string) => {
                     let stringStats = await this.redisConnection?.get(key);
                     if (stringStats) {
                         let clusterStats: ClusterStats = JSON.parse(stringStats);
-                        data.guilds = data.guilds + clusterStats.users;
+                        data.guilds = data.guilds + clusterStats.guilds;
                         data.users = data.users + clusterStats.users;
                         data.voice = data.voice + clusterStats.voice;                    
                         clusterStats.shards.forEach((shard: ShardStats) => {
