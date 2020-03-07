@@ -1,0 +1,32 @@
+{
+  "name": "redis-sharder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arcanebot/redis-sharder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arcanebot/redis-sharder/issues"
+  },
+  "homepage": "https://github.com/arcanebot/redis-sharder#readme",
+  "devDependencies": {
+    "typescript": "^3.8.3",
+    "@types/ioredis": "^4.14.8"
+  },
+  "peerDependencies": {
+    "eris": "^0.11.2"
+  },
+  "dependencies": {
+    "eris": "^0.11.2",
+    "ioredis": "^4.16.0",
+    "ioredis-lock": "^4.0.0"
+  }
+}
