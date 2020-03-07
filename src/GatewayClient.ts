@@ -1,5 +1,6 @@
 import * as Eris from 'eris';
 import Redis from 'ioredis';
+import { colors } from './constants';
 const RedisLock = require('ioredis-lock');
 
 export interface Stats {
@@ -8,6 +9,7 @@ export interface Stats {
     voice: number,
     shards: ShardStats[],
     memoryUsage: MemoryUsage,
+    clusters: ClusterStats[],
 };
 
 export enum ShardStatus {
@@ -30,10 +32,20 @@ export interface ShardStats {
 };
 
 export interface RawClusterStats {
+    id: number,
     guilds: number,
     users: number,
     voice: number,
     shards: ShardStats[],
+    memoryUsage: MemoryUsage,
+};
+
+export interface ClusterStats {
+    id: number,
+    shards: number[],
+    guilds: number,
+    users: number,
+    voice: number,
     memoryUsage: MemoryUsage,
 };
 
@@ -42,15 +54,27 @@ export interface StatsOptions {
     interval: number,
 };
 
+export interface WebhookOptions {
+    discord?: {
+        id?: string,
+        token?: string,
+    },
+    http?: {
+        url?: string,
+        authorization?: string,
+    },
+};
+
 export interface GatewayClientOptions {
-    redisPort: number | undefined,
-    redisPassword: string | undefined,
-    redisHost: string | undefined,
-    shardsPerCluster: number,
-    stats: StatsOptions,
-    lockKey: string,
+    redisPort?: number,
+    redisPassword?: string,
+    redisHost?: string,
+    shardsPerCluster?: number,
+    stats?: StatsOptions,
+    lockKey?: string,
     getFirstShard(): Promise<number>,
     erisOptions: Eris.ClientOptions,
+    webhooks?: WebhookOptions,
 };
 
 interface GatewayClientEvents<T> extends Eris.ClientEvents<T> {
@@ -78,6 +102,7 @@ export class GatewayClient extends Eris.Client {
         enabled: true,
         interval: 5000,
     }
+    webhooks: WebhookOptions = {};
 
     getFirstShard: () => Promise<number> | number;
 
@@ -103,6 +128,8 @@ export class GatewayClient extends Eris.Client {
         this.shardsPerCluster = options.shardsPerCluster || 5;
         this.lockKey = options.lockKey || 'redis-sharder';
 
+        this.webhooks = options.webhooks || {};
+
         this.hasLock = false;
         this.fullyStarted = false;
 
@@ -122,7 +149,6 @@ export class GatewayClient extends Eris.Client {
 
         if (this.stats.enabled) {
             setInterval(async () => {
-                // await this.redisConnection?.del(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`)
                 await this.redisConnection?.set(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`, JSON.stringify({
                     guilds: this.guilds.size,
                     users: this.users.size,
@@ -139,6 +165,7 @@ export class GatewayClient extends Eris.Client {
                         rss: process.memoryUsage().rss,
                         heapUsed: process.memoryUsage().heapUsed, 
                     },
+                    id: await this.getFirstShard()
                 }), 'EX', 10);
 
             }, this.stats.interval);
@@ -154,8 +181,9 @@ export class GatewayClient extends Eris.Client {
             this.fullyStarted = true;
         });
 
-        this.on('shardDisconnect', (error: Error, id: number) => {
-            console.debug(`shard ${id} disconnected`);
+        this.on('shardDisconnect', (_error: Error, id: number) => {
+            // @ts-ignore
+            this.shardStatusUpdate(this.shards.get(id))
             if (this.hasLock === false) {
                 if (this.aquire()) {
                     this.shards.get(id)?.connect();
@@ -165,6 +193,8 @@ export class GatewayClient extends Eris.Client {
             };
         });
         this.on('shardReady', (id: number) => {
+            // @ts-ignore
+            this.shardStatusUpdate(this.shards.get(id))
             if (this.shards.find((s: Eris.Shard) => s.status === 'disconnected') && this.fullyStarted === true) {
                 const shard: Eris.Shard | undefined = this.shards.find((s: Eris.Shard) => s.status === 'disconnected');
                 if (shard) shard.connect();
@@ -190,7 +220,7 @@ export class GatewayClient extends Eris.Client {
     };
 
     private async aquire(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             this.redisLock.acquire(`${this.lockKey}:shard:identify`).then((err: Error) => {
                 if (err) return resolve(false);
                 this.hasLock = true;
@@ -203,7 +233,7 @@ export class GatewayClient extends Eris.Client {
     };
 
     async getStats() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve, _reject) => {
             const stream = this.redisConnection?.scanStream({ match: `${this.lockKey}:cluster:stats:*`, });
             const data:Stats = {
                 guilds: 0,
@@ -214,6 +244,7 @@ export class GatewayClient extends Eris.Client {
                     heapUsed: 0,
                     rss: 0,
                 },
+                clusters: [],
             };
     
             stream?.on('data', async (chunk: string[]) => {
@@ -231,6 +262,14 @@ export class GatewayClient extends Eris.Client {
                         });
                         data.memoryUsage.rss = data.memoryUsage.rss + clusterStats.memoryUsage.rss;
                         data.memoryUsage.heapUsed = data.memoryUsage.heapUsed + clusterStats.memoryUsage.heapUsed;
+                        data.clusters.push({
+                            id: clusterStats.id,
+                            shards: clusterStats.shards.map(s => s.id),
+                            guilds: clusterStats.guilds,
+                            users: clusterStats.users,
+                            voice: clusterStats.voice,
+                            memoryUsage: clusterStats.memoryUsage,
+                        });
                         return stringStats;
                     } else return null;
                 });
@@ -241,6 +280,20 @@ export class GatewayClient extends Eris.Client {
             stream?.once('end', async () => {
                 return resolve(data);
             });
+        });
+    };
+
+    private shardStatusUpdate(shard: Eris.Shard): void {
+        if (!this.webhooks.discord?.id || !this.webhooks.discord?.token) return;
+        let color = undefined;
+        if (shard.status === 'ready') color = colors.green;
+        if (shard.status === 'disconnected') color = colors.red;
+
+        this.executeWebhook(this.webhooks.discord.id, this.webhooks.discord.token, {
+            embeds: [{
+                title:'Shard status update', description: `ID: **${shard.id}** \nStatus: **${shard.status}**`,
+                color: color,
+            }],
         });
     };
 };

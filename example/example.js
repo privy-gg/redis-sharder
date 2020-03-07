@@ -1,12 +1,18 @@
 const RedisSharder = require('../dist/RedisSharder');
 
-const bot = new RedisSharder.GatewayClient('NjQ1NDAxMzI1NDkxODQ3MTY4.XmL7OQ.NLrArvRb4HtSNpX-vEL2oBlELdY', { 
+const bot = new RedisSharder.GatewayClient('NjQ1NDAxMzI1NDkxODQ3MTY4.XmMoPA.H_g9FeQ4GOp4w1BHQf3D8bG7_Ts', { 
     erisOptions: { maxShards: 2 },
     shardsPerCluster: 2, // must evenly go into the max shards. 
     lockKey: 'arcane-standard-1', // not needed but is VERY VERY important if you plan on running multiple bots with this sharding setup
     getFirstShard: () => {
         return Number(process.env.pm_id); // pm2 cluster mode provides this so its quite useful. The only "issue" is if you already have other pm2 processes running this will frick up the number
         // and not work. This shouldn't be used in production. Use k8s, k3s?, or any other solution. 
+    },
+    webhooks: {
+        discord: {
+            id: '685722753030029402',
+            token: 'SYBzBcpmAs-nXU-3NflDVCS76l-b5_46XPx14KdRwXz5iiHIJ6sBa7P6xINyagKVJerT',
+        },
     },
 });
 
