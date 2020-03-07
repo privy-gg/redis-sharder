@@ -1,6 +1,6 @@
 const RedisSharder = require('../dist/RedisSharder');
 
-const bot = new RedisSharder.GatewayClient('NjQ1NDAxMzI1NDkxODQ3MTY4.XmLwLA.nAAlqFGMwFaAPH13KKyYLxf_zNw', { 
+const bot = new RedisSharder.GatewayClient('NjQ1NDAxMzI1NDkxODQ3MTY4.XmL7OQ.NLrArvRb4HtSNpX-vEL2oBlELdY', { 
     erisOptions: { maxShards: 2 },
     shardsPerCluster: 2, // must evenly go into the max shards. 
     lockKey: 'arcane-standard-1', // not needed but is VERY VERY important if you plan on running multiple bots with this sharding setup
@@ -22,5 +22,4 @@ bot.on('acquiredLock', () => { // incase you want to know idk
 
 setInterval(() => { // this just showcases that stats do work
     if (Number(process.env.pm_id) === 0) bot.getStats().then(stats => console.log(stats));
-    console.log(bot.guilds.size)
 }, 5000);

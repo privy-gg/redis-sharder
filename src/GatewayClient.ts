@@ -6,19 +6,35 @@ export interface Stats {
     guilds: number,
     users: number,
     voice: number,
-    shards: ShardStats[]
+    shards: ShardStats[],
+    memoryUsage: MemoryUsage,
+};
+
+export enum ShardStatus {
+    READY,
+    HANDSHAKING,
+    DISCONNECTED,
+    CONNECTING,
+};
+
+export interface MemoryUsage {
+    rss: number,
+    heapUsed: number,
 };
 
 export interface ShardStats {
-    status: string,
+    status: ShardStatus,
     id: number,
+    latency: number,
+    guilds: number,
 };
 
-export interface ClusterStats {
+export interface RawClusterStats {
     guilds: number,
     users: number,
     voice: number,
-    shards: ShardStats[]
+    shards: ShardStats[],
+    memoryUsage: MemoryUsage,
 };
 
 export interface StatsOptions {
@@ -115,11 +131,16 @@ export class GatewayClient extends Eris.Client {
                         return {
                             status: s.status,
                             id: s.id,
+                            latency: s.latency,
+                            guilds: this.guilds.filter(g => g.shard.id === s.id).length,
                         };
                     }),
+                    memoryUsage: {
+                        rss: process.memoryUsage().rss,
+                        heapUsed: process.memoryUsage().heapUsed, 
+                    },
                 }), 'EX', 10);
 
-                // console.log(await this.redisConnection?.get(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`))
             }, this.stats.interval);
         }
 
@@ -153,7 +174,6 @@ export class GatewayClient extends Eris.Client {
 
     private async calculateThisShards(): Promise<number[]> {
         const firstShardID = await this.getFirstShard();
-        console.log([this.shardsPerCluster*firstShardID, this.shardsPerCluster*firstShardID+(this.shardsPerCluster-1)])
         return [this.shardsPerCluster*firstShardID, this.shardsPerCluster*firstShardID+(this.shardsPerCluster-1)];
     };
 
@@ -172,7 +192,7 @@ export class GatewayClient extends Eris.Client {
     private async aquire(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             this.redisLock.acquire(`${this.lockKey}:shard:identify`).then((err: Error) => {
-                if (err) return;
+                if (err) return resolve(false);
                 this.hasLock = true;
                 this.emit('acquiredLock');
                 resolve(true);
@@ -190,6 +210,10 @@ export class GatewayClient extends Eris.Client {
                 users: 0,
                 voice: 0,
                 shards: [],
+                memoryUsage: {
+                    heapUsed: 0,
+                    rss: 0,
+                },
             };
     
             stream?.on('data', async (chunk: string[]) => {
@@ -197,7 +221,7 @@ export class GatewayClient extends Eris.Client {
                 const thing = chunk.map(async (key: string) => {
                     let stringStats = await this.redisConnection?.get(key);
                     if (stringStats) {
-                        let clusterStats: ClusterStats = JSON.parse(stringStats);
+                        let clusterStats: RawClusterStats = JSON.parse(stringStats);
                         data.guilds = data.guilds + clusterStats.guilds;
                         data.users = data.users + clusterStats.users;
                         data.voice = data.voice + clusterStats.voice;                    
@@ -205,6 +229,8 @@ export class GatewayClient extends Eris.Client {
                             // @ts-ignore
                             data.shards.push(shard);
                         });
+                        data.memoryUsage.rss = data.memoryUsage.rss + clusterStats.memoryUsage.rss;
+                        data.memoryUsage.heapUsed = data.memoryUsage.heapUsed + clusterStats.memoryUsage.heapUsed;
                         return stringStats;
                     } else return null;
                 });
@@ -216,5 +242,5 @@ export class GatewayClient extends Eris.Client {
                 return resolve(data);
             });
         });
-    }
+    };
 };
