@@ -25,7 +25,6 @@
     "eris": "^0.11.2"
   },
   "dependencies": {
-    "eris": "^0.11.2",
     "ioredis": "^4.16.0",
     "ioredis-lock": "^4.0.0"
   }
