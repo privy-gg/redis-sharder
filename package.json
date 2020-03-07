@@ -2,10 +2,7 @@
   "name": "redis-sharder",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "main": "dist/RedisSharder.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/arcanebot/redis-sharder.git"
@@ -27,5 +24,8 @@
   "dependencies": {
     "ioredis": "^4.16.0",
     "ioredis-lock": "^4.0.0"
+  },
+  "scripts": {
+    "prepack": "tsc"
   }
 }
