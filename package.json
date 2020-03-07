@@ -26,6 +26,6 @@
     "ioredis-lock": "^4.0.0"
   },
   "scripts": {
-    "prepack": "tsc"
+    "postinstall": "tsc"
   }
 }
