@@ -1,6 +1,7 @@
 import * as Eris from 'eris';
 import Redis from 'ioredis';
 import { colors } from './constants';
+import { PubSub } from './util/PubSub';
 const RedisLock = require('ioredis-lock');
 
 export interface Stats {
@@ -38,6 +39,7 @@ export interface RawClusterStats {
     voice: number,
     shards: ShardStats[],
     memoryUsage: MemoryUsage,
+    uptime: number,
 };
 
 export interface ClusterStats {
@@ -47,6 +49,7 @@ export interface ClusterStats {
     users: number,
     voice: number,
     memoryUsage: MemoryUsage,
+    uptime: number,
 };
 
 export interface StatsOptions {
@@ -110,7 +113,7 @@ export class GatewayClient extends Eris.Client {
     private redisLock: any;
     private hasLock: boolean;
     private fullyStarted: boolean;
-    // private pubSub: PubSub | undefined;
+    private pubSub: PubSub | undefined;
 
 
     constructor(token: string, options: GatewayClientOptions) {
@@ -119,7 +122,7 @@ export class GatewayClient extends Eris.Client {
         if (!options) throw new Error('No options provided');
         if (!options.shardsPerCluster) throw new Error('No function to get the first shard id provided.');
 
-        this.options.autoreconnect = false; // yes
+        this.options.autoreconnect = true; // yes
 
         this.redisPort = options.redisPort;
         this.redisHost = options.redisHost;
@@ -165,13 +168,16 @@ export class GatewayClient extends Eris.Client {
                         rss: process.memoryUsage().rss,
                         heapUsed: process.memoryUsage().heapUsed, 
                     },
-                    id: await this.getFirstShard()
+                    id: await this.getFirstShard(),
+                    uptime: this.uptime,
                 }), 'EX', 10);
 
             }, this.stats.interval);
         }
 
-        // this.pubSub = new PubSub({}, this.redisConnection, this);
+        this.pubSub = new PubSub({}, this);
+
+        this.pubSub;
     };
 
     private setupListeners() {
@@ -181,15 +187,18 @@ export class GatewayClient extends Eris.Client {
             this.fullyStarted = true;
         });
 
-        this.on('shardDisconnect', (_error: Error, id: number) => {
-            // @ts-ignore
-            this.shardStatusUpdate(this.shards.get(id))
+        this.on('shardDisconnect', async (_error: Error, id: number) => {
             if (this.hasLock === false) {
-                if (this.aquire()) {
-                    this.shards.get(id)?.connect();
-                } else {
-                    // do something but idk what
-                };
+                setTimeout(async () => {
+                    // @ts-ignore
+                    this.shardStatusUpdate(this.shards.get(id));
+
+                    if (this.aquire()) {
+                        if (this.shards.get(id)?.status === 'disconnected') await this.shards.get(id)?.connect();
+                    } else {
+                        // do something but idk what
+                    };
+                }, 2000);
             };
         });
         this.on('shardReady', (id: number) => {
@@ -198,6 +207,11 @@ export class GatewayClient extends Eris.Client {
             if (this.shards.find((s: Eris.Shard) => s.status === 'disconnected') && this.fullyStarted === true) {
                 const shard: Eris.Shard | undefined = this.shards.find((s: Eris.Shard) => s.status === 'disconnected');
                 if (shard) shard.connect();
+            } else if (this.hasLock && this.fullyStarted === true) {
+                try {
+                    this.redisLock.release(`${this.lockKey}:shard:identify`);
+                    this.hasLock = false;
+                } catch {};
             };
         });
     };
@@ -269,6 +283,7 @@ export class GatewayClient extends Eris.Client {
                             users: clusterStats.users,
                             voice: clusterStats.voice,
                             memoryUsage: clusterStats.memoryUsage,
+                            uptime: clusterStats.uptime,
                         });
                         return stringStats;
                     } else return null;
@@ -293,7 +308,20 @@ export class GatewayClient extends Eris.Client {
             embeds: [{
                 title:'Shard status update', description: `ID: **${shard.id}** \nStatus: **${shard.status}**`,
                 color: color,
+                timestamp: new Date(),
             }],
         });
+    };
+
+    getRedis(): Redis.Redis | undefined {
+        return this.redisConnection;
+    };
+
+    getGuildByID(id: string) {
+        return this.pubSub?.getGuild(id);
+    };
+
+    getUserByID(id: string) {
+        return this.pubSub?.getUser(id);
     };
 };

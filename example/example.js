@@ -1,29 +1,30 @@
 const RedisSharder = require('../dist/RedisSharder');
 
-const bot = new RedisSharder.GatewayClient('NjQ1NDAxMzI1NDkxODQ3MTY4.XmMoPA.H_g9FeQ4GOp4w1BHQf3D8bG7_Ts', { 
-    erisOptions: { maxShards: 2 },
-    shardsPerCluster: 2, // must evenly go into the max shards. 
+const bot = new RedisSharder.GatewayClient('BOT_TOKEN', { 
+    erisOptions: { maxShards: 1 },
+    shardsPerCluster: 1, // must evenly go into the max shards. 
     lockKey: 'arcane-standard-1', // not needed but is VERY VERY important if you plan on running multiple bots with this sharding setup
     getFirstShard: () => {
-        return Number(process.env.pm_id); // pm2 cluster mode provides this so its quite useful. The only "issue" is if you already have other pm2 processes running this will frick up the number
+        return Number(process.env.pm_id || 0); // pm2 cluster mode provides this so its quite useful. The only "issue" is if you already have other pm2 processes running this will frick up the number
         // and not work. This shouldn't be used in production. Use k8s, k3s?, or any other solution. 
     },
     webhooks: {
         discord: {
-            id: '685722753030029402',
-            token: 'SYBzBcpmAs-nXU-3NflDVCS76l-b5_46XPx14KdRwXz5iiHIJ6sBa7P6xINyagKVJerT',
+            id: 'id',
+            token: 'token',
         },
     },
 });
 
 bot.queue(); // DONT USE BOT.CONNECT ANYMORE. IT WILL BE CALLED LATER BY THE STUFF
 
-bot.on('ready', () => {
+bot.on('ready', async () => {
     console.log(`Shards ${bot.shards.map(s => s.id).join(',')} are online. (out of ${bot.options.maxShards})`);
+    console.log(await bot.getUserByID('295980401560649730'));
 });
 
 bot.on('acquiredLock', () => { // incase you want to know idk
-    console.log(`[Lock] Acquired lock for this cluster ${process.env.pm_id}`);
+    console.log(`[Lock] Acquired lock for this cluster ${process.env.pm_id || 0}`);
 });
 
 setInterval(() => { // this just showcases that stats do work
