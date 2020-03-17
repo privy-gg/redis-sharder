@@ -271,7 +271,6 @@ export class GatewayClient extends Eris.Client {
                         data.users = data.users + clusterStats.users;
                         data.voice = data.voice + clusterStats.voice;                    
                         clusterStats.shards.forEach((shard: ShardStats) => {
-                            // @ts-ignore
                             data.shards.push(shard);
                         });
                         data.memoryUsage.rss = data.memoryUsage.rss + clusterStats.memoryUsage.rss;
