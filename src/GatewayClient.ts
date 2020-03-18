@@ -246,7 +246,7 @@ export class GatewayClient extends Eris.Client {
         });
     };
 
-    async getStats() {
+    async getStats(): Promise<Stats> {
         return new Promise(async (resolve, _reject) => {
             const stream = this.redisConnection?.scanStream({ match: `${this.lockKey}:cluster:stats:*`, });
             const data:Stats = {
