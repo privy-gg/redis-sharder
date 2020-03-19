@@ -175,7 +175,7 @@ export class GatewayClient extends Eris.Client {
             }, this.stats.interval);
         }
 
-        this.pubSub = new PubSub({}, this);
+        this.pubSub = new PubSub(this.options, this);
 
         this.pubSub;
     };
