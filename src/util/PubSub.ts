@@ -1,6 +1,12 @@
 import Redis, { CallbackFunction } from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
 
+export interface PubSubOptions {
+    redisPort?: number,
+    redisPassword?: string,
+    redisHost?: string,
+};
+
 export class PubSub {
     
     private subRedis: Redis.Redis | undefined;
@@ -11,7 +17,7 @@ export class PubSub {
     private returns: Map<string, CallbackFunction> = new Map();
     private evals: Map<string, any> = new Map();
 
-    constructor(options:any, client: GatewayClient) {
+    constructor(options:PubSubOptions, client: GatewayClient) {
         this.client = client;
         this.options = options;
 

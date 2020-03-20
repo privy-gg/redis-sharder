@@ -175,9 +175,7 @@ export class GatewayClient extends Eris.Client {
             }, this.stats.interval);
         }
 
-        this.pubSub = new PubSub(this.options, this);
-
-        this.pubSub;
+        this.pubSub = new PubSub({ redisHost: this.redisHost, redisPassword: this.redisPassword, redisPort: this.redisPort }, this);
     };
 
     private setupListeners() {
