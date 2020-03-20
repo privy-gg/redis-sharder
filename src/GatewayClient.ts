@@ -28,7 +28,7 @@ export interface MemoryUsage {
 export interface ShardStats {
     status: ShardStatus,
     id: number,
-    latency: number,
+    latency: number | null,
     guilds: number,
 };
 
@@ -292,6 +292,18 @@ export class GatewayClient extends Eris.Client {
             });
     
             stream?.once('end', async () => {
+                const addAllShards = new Array(this.options.maxShards).fill(undefined).map((_test, index) => {
+                    if (data.shards.find((s: ShardStats) => s.id === index)) return null;
+                    else data.shards.push({
+                        // @ts-ignore
+                        status: 'disconnected',
+                        id: index,
+                        latency: null,
+                        guilds: 0,
+                    });
+                });
+                await Promise.all(addAllShards)
+
                 return resolve(data);
             });
         });
@@ -323,4 +335,8 @@ export class GatewayClient extends Eris.Client {
     getUserByID(id: string) {
         return this.pubSub?.getUser(id);
     };
+
+    evalAll(script: string) {
+        return this.pubSub?.evalAll(script);
+    }
 };

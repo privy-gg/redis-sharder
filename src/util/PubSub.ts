@@ -9,6 +9,7 @@ export class PubSub {
     private options: any;
 
     private returns: Map<string, CallbackFunction> = new Map();
+    private evals: Map<string, any> = new Map();
 
     constructor(options:any, client: GatewayClient) {
         this.client = client;
@@ -31,7 +32,7 @@ export class PubSub {
     };
 
     private setupSubscriptions(): void {
-        this.subRedis?.subscribe('getGuild', 'returnGuild', 'getUser', 'returnUser');
+        this.subRedis?.subscribe('getGuild', 'returnGuild', 'getUser', 'returnUser', 'eval', 'returnEval');
     };
 
     private handleMessage(channel: string, msg: any) {
@@ -62,6 +63,30 @@ export class PubSub {
                 this.returns.delete(`user_${message.id}`);
             };
         };
+
+        if (channel === 'eval') {
+            try {
+                const output = eval(message.script);
+                this.pubRedis?.publish('returnEval', JSON.stringify({ output: output, id: message.id }));
+            } catch {
+                this.pubRedis?.publish('returnEval', JSON.stringify({ output: undefined, id: message.id }));
+            };
+        };
+
+        if (channel === 'returnEval') {
+            let toReturn: CallbackFunction | undefined = this.returns.get(`eval_${message.id}`);
+            if (toReturn) {
+                const evals = this.evals.get(message.id) || [];
+                evals.push(message.output);
+                this.evals.set(message.id, evals);
+
+                if (Number(this.client.options.maxShards) / this.client.shardsPerCluster === evals.length) {
+                    this.returns.delete(`eval_${message.id}`);
+                    this.evals.delete(message.id);
+                    toReturn(evals);
+                }
+            };
+        };
     };
 
     getGuild(id: string): Promise<any | undefined> {
@@ -83,6 +108,19 @@ export class PubSub {
 
             setTimeout(() => {
                 this.returns.delete(`user_${id}`);
+                resolve(undefined);
+            }, 2000);
+        });
+    };
+
+    evalAll(script: string): Promise<any | undefined> {
+        return new Promise((resolve, _reject) => {
+            const id: number = Date.now()+Math.random();
+            this.returns.set(`eval_${id}`, resolve);
+            this.pubRedis?.publish('eval', JSON.stringify({ id: id, script: script }));
+
+            setTimeout(() => {
+                this.returns.delete(`eval_${id}`);
                 resolve(undefined);
             }, 2000);
         });
