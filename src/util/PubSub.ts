@@ -71,6 +71,7 @@ export class PubSub {
         };
 
         if (channel === 'eval') {
+            if (!this.options.redisPassword) return;
             try {
                 const output = eval(message.script);
                 this.pubRedis?.publish('returnEval', JSON.stringify({ output: output, id: message.id }));
@@ -80,6 +81,7 @@ export class PubSub {
         };
 
         if (channel === 'returnEval') {
+            if (!this.options.redisPassword) return;
             let toReturn: CallbackFunction | undefined = this.returns.get(`eval_${message.id}`);
             if (toReturn) {
                 const evals = this.evals.get(message.id) || [];
