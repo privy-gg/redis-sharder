@@ -1,5 +1,6 @@
 import Redis, { CallbackFunction } from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
+import { Base } from 'eris';
 
 export interface PubSubOptions {
     redisPort?: number,
@@ -73,7 +74,16 @@ export class PubSub {
         if (channel === 'eval') {
             if (!this.options.redisPassword) return;
             try {
-                const output = eval(message.script);
+                let output = eval(message.script);
+
+                // to do
+                // try to .toJSON()
+                if (Array.isArray(output)) output = output.map((item: any) => {
+                    if (item instanceof Base) return item.toJSON();
+                    else return item;
+                });
+                if (output instanceof Base) output = output.toJSON();
+
                 this.pubRedis?.publish('returnEval', JSON.stringify({ output: output, id: message.id }));
             } catch {
                 this.pubRedis?.publish('returnEval', JSON.stringify({ output: undefined, id: message.id }));
@@ -121,7 +131,7 @@ export class PubSub {
         });
     };
 
-    evalAll(script: string): Promise<any | undefined> {
+    evalAll(script: string, timeout?: number): Promise<any | undefined> {
         return new Promise((resolve, _reject) => {
             const id: number = Date.now()+Math.random();
             this.returns.set(`eval_${id}`, resolve);
@@ -130,7 +140,7 @@ export class PubSub {
             setTimeout(() => {
                 this.returns.delete(`eval_${id}`);
                 resolve(undefined);
-            }, 2000);
+            }, timeout || 5000);
         });
     };
 };
