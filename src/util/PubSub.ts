@@ -1,6 +1,7 @@
 import Redis, { CallbackFunction } from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
 import { Base } from 'eris';
+import { DataClient } from '../DateClient';
 
 export interface PubSubOptions {
     redisPort?: number,
@@ -12,13 +13,13 @@ export class PubSub {
     
     private subRedis: Redis.Redis | undefined;
     private pubRedis: Redis.Redis | undefined;
-    private client: GatewayClient;
+    private client: GatewayClient | DataClient;
     private options: any;
 
     private returns: Map<string, CallbackFunction> = new Map();
     private evals: Map<string, any> = new Map();
 
-    constructor(options:PubSubOptions, client: GatewayClient) {
+    constructor(options:PubSubOptions, client: GatewayClient | DataClient) {
         this.client = client;
         this.options = options;
 
@@ -46,6 +47,7 @@ export class PubSub {
         let message:any = JSON.parse(msg);
 
         if (channel === 'getGuild') {
+            if (this.client instanceof DataClient) return;
             const guild = this.client.guilds.get(message.id);
             if (guild) this.pubRedis?.publish('returnGuild', JSON.stringify(guild?.toJSON()));
         };
@@ -59,6 +61,7 @@ export class PubSub {
         };
 
         if (channel === 'getUser') {
+            if (this.client instanceof DataClient) return;
             const user = this.client.users.get(message.id);
             if (user) this.pubRedis?.publish('returnUser', JSON.stringify(user?.toJSON()));
         };
@@ -98,11 +101,17 @@ export class PubSub {
                 evals.push(message.output);
                 this.evals.set(message.id, evals);
 
-                if (Number(this.client.options.maxShards) / this.client.shardsPerCluster === evals.length) {
+                if (this.client instanceof DataClient) {
+                    if (Number(this.client.maxShards) / this.client.shardsPerCluster === evals.length) {
+                        this.returns.delete(`eval_${message.id}`);
+                        this.evals.delete(message.id);
+                        toReturn(evals);
+                    };
+                } else if (Number(this.client.options.maxShards) / this.client.shardsPerCluster === evals.length) {
                     this.returns.delete(`eval_${message.id}`);
                     this.evals.delete(message.id);
                     toReturn(evals);
-                }
+                };
             };
         };
     };

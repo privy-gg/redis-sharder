@@ -337,5 +337,5 @@ export class GatewayClient extends Eris.Client {
     evalAll(script: string) {
         if (!this.redisPassword) return new Error('Evaling across clusters requires your redis instance to be secured with a password!');
         return this.pubSub?.evalAll(script);
-    }
+    };
 };
