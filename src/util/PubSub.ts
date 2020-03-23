@@ -40,7 +40,7 @@ export class PubSub {
     };
 
     private setupSubscriptions(): void {
-        this.subRedis?.subscribe('getGuild', 'returnGuild', 'getUser', 'returnUser', 'eval', 'returnEval');
+        this.subRedis?.subscribe('getGuild', 'returnGuild', 'getUser', 'returnUser', 'eval', 'returnEval', 'acquiredLock');
     };
 
     private handleMessage(channel: string, msg: any) {
