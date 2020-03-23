@@ -1,61 +1,8 @@
 import Redis from 'ioredis';
 import { PubSub } from './util/PubSub';
+import { Stats, RawClusterStats, ShardStats } from './stats';
 
-export interface Stats {
-    guilds: number,
-    users: number,
-    voice: number,
-    shards: ShardStats[],
-    memoryUsage: MemoryUsage,
-    clusters: ClusterStats[],
-};
-
-export enum ShardStatus {
-    READY,
-    HANDSHAKING,
-    DISCONNECTED,
-    CONNECTING,
-};
-
-export interface MemoryUsage {
-    rss: number,
-    heapUsed: number,
-};
-
-export interface ShardStats {
-    status: ShardStatus,
-    id: number,
-    latency: number | null,
-    guilds: number,
-};
-
-export interface RawClusterStats {
-    id: number,
-    guilds: number,
-    users: number,
-    voice: number,
-    shards: ShardStats[],
-    memoryUsage: MemoryUsage,
-    uptime: number,
-};
-
-export interface ClusterStats {
-    id: number,
-    shards: number[],
-    guilds: number,
-    users: number,
-    voice: number,
-    memoryUsage: MemoryUsage,
-    uptime: number,
-};
-
-export interface StatsOptions {
-    enabled: boolean,
-    interval: number,
-};
-
-
-export interface GatewayClientOptions {
+export interface DataClientOptions {
     redisPort?: number,
     redisPassword?: string,
     redisHost?: string,
@@ -78,7 +25,7 @@ export class DataClient {
     private pubSub: PubSub | undefined;
 
 
-    constructor(options: GatewayClientOptions) {
+    constructor(options: DataClientOptions) {
 
         if (!options) throw new Error('No options provided');
         if (!options.maxShards) throw new Error('No max shards provided.');

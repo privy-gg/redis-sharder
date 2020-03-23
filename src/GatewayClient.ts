@@ -2,55 +2,8 @@ import * as Eris from 'eris';
 import Redis from 'ioredis';
 import { colors } from './constants';
 import { PubSub } from './util/PubSub';
+import { Stats, RawClusterStats, ShardStats } from './stats';
 const RedisLock = require('ioredis-lock');
-
-export interface Stats {
-    guilds: number,
-    users: number,
-    voice: number,
-    shards: ShardStats[],
-    memoryUsage: MemoryUsage,
-    clusters: ClusterStats[],
-};
-
-export enum ShardStatus {
-    READY,
-    HANDSHAKING,
-    DISCONNECTED,
-    CONNECTING,
-};
-
-export interface MemoryUsage {
-    rss: number,
-    heapUsed: number,
-};
-
-export interface ShardStats {
-    status: ShardStatus,
-    id: number,
-    latency: number | null,
-    guilds: number,
-};
-
-export interface RawClusterStats {
-    id: number,
-    guilds: number,
-    users: number,
-    voice: number,
-    shards: ShardStats[],
-    memoryUsage: MemoryUsage,
-    uptime: number,
-};
-
-export interface ClusterStats {
-    id: number,
-    shards: number[],
-    guilds: number,
-    users: number,
-    voice: number,
-    memoryUsage: MemoryUsage,
-    uptime: number,
-};
 
 export interface StatsOptions {
     enabled: boolean,
