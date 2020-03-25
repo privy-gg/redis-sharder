@@ -50,9 +50,9 @@ export class DataClient {
         this.pubSub = new PubSub({ redisHost: this.redisHost, redisPassword: this.redisPassword, redisPort: this.redisPort }, this);
     };
 
-    async getStats(): Promise<Stats> {
+    async getStats(key?: string): Promise<Stats> {
         return new Promise(async (resolve, _reject) => {
-            const stream = this.redisConnection?.scanStream({ match: `${this.lockKey}:cluster:stats:*`, });
+            const stream = this.redisConnection?.scanStream({ match: `${key || this.lockKey}:cluster:stats:*`, });
             const data:Stats = {
                 guilds: 0,
                 users: 0,
