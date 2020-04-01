@@ -1,7 +1,8 @@
 import Redis, { CallbackFunction } from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
-import { Base } from 'eris';
+import { Base, Shard, Guild } from 'eris';
 import { DataClient } from '../DateClient';
+import { Stats, ShardStats, RawClusterStats } from '../stats';
 
 export interface PubSubOptions {
     redisPort?: number,
@@ -18,6 +19,7 @@ export class PubSub {
 
     private returns: Map<string, CallbackFunction> = new Map();
     private evals: Map<string, any> = new Map();
+    private stats: Map<string, any> = new Map();
 
     constructor(options:PubSubOptions, client: GatewayClient | DataClient) {
         this.client = client;
@@ -40,10 +42,10 @@ export class PubSub {
     };
 
     private setupSubscriptions(): void {
-        this.subRedis?.subscribe('getGuild', 'returnGuild', 'getUser', 'returnUser', 'eval', 'returnEval', 'acquiredLock');
+        this.subRedis?.subscribe('getGuild', 'returnGuild', 'getUser', 'returnUser', 'eval', 'returnEval', 'acquiredLock', 'stats', 'returnStats');
     };
 
-    private handleMessage(channel: string, msg: any) {
+    private async handleMessage(channel: string, msg: any) {
         let message:any = JSON.parse(msg);
 
         if (channel === 'getGuild') {
@@ -114,6 +116,93 @@ export class PubSub {
                 };
             };
         };
+
+        if (channel === 'stats') {
+            if (!(this.client instanceof DataClient) && this.client.lockKey === message.key) {
+                this.pubRedis?.publish('returnStats', JSON.stringify({
+                    id: message.id,
+                    stats: {
+                        guilds: this.client.guilds.size,
+                        users: this.client.users.size,
+                        voice: this.client.voiceConnections.size,
+                        shards: this.client.shards.map((s: Shard) => {
+                            return {
+                                status: s.status,
+                                id: s.id,
+                                latency: s.latency,
+                                guilds: s.client.guilds.filter((g: Guild) => g.shard.id === s.id).length,
+                            };
+                        }),
+                        memoryUsage: {
+                            rss: process.memoryUsage().rss,
+                            heapUsed: process.memoryUsage().heapUsed, 
+                        },
+                        id: await this.client.getFirstShard(),
+                        uptime: this.client.uptime,
+                    },
+                }));
+            };
+        };
+
+        if (channel === 'returnStats') {
+            if (!this.options.redisPassword) return;
+            let toReturn: CallbackFunction | undefined = this.returns.get(`stats_${message.id}`);
+            if (toReturn) {
+                const stats = this.stats.get(message.id) || [];
+                stats.push(message);
+                this.stats.set(message.id, stats);
+
+                if (this.client instanceof DataClient) {
+                    if (Number(this.client.maxShards) / this.client.shardsPerCluster === stats.length) {
+                        this.returns.delete(`stats_${message.id}`);
+                        this.stats.delete(message.id);
+                        // @ts-ignore
+                        toReturn(this.formatStats(stats));
+                    };
+                } else if (Number(this.client.options.maxShards) / this.client.shardsPerCluster === stats.length) {
+                    this.returns.delete(`stats_${message.id}`);
+                    this.stats.delete(message.id);
+                    // @ts-ignore
+                    toReturn(this.formatStats(stats));
+                };
+            };
+        };
+    };
+
+    private formatStats(stats: any[]): Stats {
+        const data:Stats = {
+            guilds: 0,
+            users: 0,
+            voice: 0,
+            shards: [],
+            memoryUsage: {
+                heapUsed: 0,
+                rss: 0,
+            },
+            clusters: [],
+        };
+
+        stats.forEach((clusterStats: { key: string, id: string, stats: RawClusterStats }) => {
+            data.guilds = data.guilds + clusterStats.stats.guilds;
+            data.users = data.users + clusterStats.stats.users;
+            data.voice = data.voice + clusterStats.stats.voice;                    
+            clusterStats.stats.shards.forEach((shard: ShardStats) => {
+                data.shards.push(shard);
+            });
+            data.memoryUsage.rss = data.memoryUsage.rss + clusterStats.stats.memoryUsage.rss;
+            data.memoryUsage.heapUsed = data.memoryUsage.heapUsed + clusterStats.stats.memoryUsage.heapUsed;
+            data.clusters.push({
+                id: clusterStats.stats.id,
+                shards: clusterStats.stats.shards.map(s => s.id),
+                guilds: clusterStats.stats.guilds,
+                users: clusterStats.stats.users,
+                voice: clusterStats.stats.voice,
+                memoryUsage: clusterStats.stats.memoryUsage,
+                uptime: clusterStats.stats.uptime,
+            });
+        });
+
+        return data;
     };
 
     getGuild(id: string): Promise<any | undefined> {
@@ -142,7 +231,7 @@ export class PubSub {
 
     evalAll(script: string, timeout?: number): Promise<any | undefined> {
         return new Promise((resolve, _reject) => {
-            const id: number = Date.now()+Math.random();
+            const id: string = `${this.client instanceof DataClient ? '' : this.client.user.id}:${Date.now()+Math.random()}`;
             this.returns.set(`eval_${id}`, resolve);
             this.pubRedis?.publish('eval', JSON.stringify({ id: id, script: script }));
 
@@ -150,6 +239,19 @@ export class PubSub {
                 this.returns.delete(`eval_${id}`);
                 resolve(undefined);
             }, timeout || 5000);
+        });
+    };
+
+    getStats(key: string): Promise<any | undefined> {
+        return new Promise((resolve, _reject) => {
+            const id: string = `${this.client instanceof DataClient ? '' : this.client.user.id}:${Date.now()+Math.random()}`;
+            this.returns.set(`stats_${id}`, resolve);
+            this.pubRedis?.publish('stats', JSON.stringify({ key: key || this.client.lockKey, id: id }));
+
+            setTimeout(() => {
+                this.returns.delete(`stats_${id}`);
+                resolve(undefined);
+            }, 5000);
         });
     };
 };
