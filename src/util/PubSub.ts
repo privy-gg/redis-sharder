@@ -120,6 +120,7 @@ export class PubSub {
         if (channel === 'stats') {
             if (!(this.client instanceof DataClient) && this.client.lockKey === message.key) {
                 this.pubRedis?.publish('returnStats', JSON.stringify({
+                    key: this.client.lockKey,
                     id: message.id,
                     stats: {
                         guilds: this.client.guilds.size,
@@ -163,11 +164,6 @@ export class PubSub {
                     this.stats.delete(message.id);
                     // @ts-ignore
                     toReturn(this.formatStats(stats));
-
-
-
-
-                    // TODO: USE A DOT ENV FOR THE TOKEN IN THE EXAMPLE. IM TIRED OF PUSHING THE TOKEN
                 };
             };
         };

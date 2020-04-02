@@ -1,6 +1,6 @@
 const RedisSharder = require('../dist/RedisSharder');
 
-const bot = new RedisSharder.GatewayClient('NDU5NTU4OTI5NzIzMjkzNzI5.XoUmpA.cddHs6alw__ZA8ojorVcVN4p9oI', { 
+const bot = new RedisSharder.GatewayClient('BOT_TOKEN', { 
     erisOptions: { maxShards: 1 },
     shardsPerCluster: 1, // must evenly go into the max shards. 
     lockKey: 'arcane-standard-1', // not needed but is VERY VERY important if you plan on running multiple bots with this sharding setup
