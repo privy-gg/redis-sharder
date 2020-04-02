@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { PubSub } from './util/PubSub';
-import { Stats, RawClusterStats, ShardStats } from './stats';
+import { Stats } from './stats';
 
 export interface DataClientOptions {
     redisPort?: number,
@@ -51,66 +51,7 @@ export class DataClient {
     };
 
     async getStats(key?: string): Promise<Stats> {
-        return new Promise(async (resolve, _reject) => {
-            const stream = this.redisConnection?.scanStream({ match: `${key || this.lockKey}:cluster:stats:*`, });
-            const data:Stats = {
-                guilds: 0,
-                users: 0,
-                voice: 0,
-                shards: [],
-                memoryUsage: {
-                    heapUsed: 0,
-                    rss: 0,
-                },
-                clusters: [],
-            };
-    
-            stream?.on('data', async (chunk: string[]) => {
-                stream.pause();
-                const thing = chunk.map(async (key: string) => {
-                    let stringStats = await this.redisConnection?.get(key);
-                    if (stringStats) {
-                        let clusterStats: RawClusterStats = JSON.parse(stringStats);
-                        data.guilds = data.guilds + clusterStats.guilds;
-                        data.users = data.users + clusterStats.users;
-                        data.voice = data.voice + clusterStats.voice;                    
-                        clusterStats.shards.forEach((shard: ShardStats) => {
-                            data.shards.push(shard);
-                        });
-                        data.memoryUsage.rss = data.memoryUsage.rss + clusterStats.memoryUsage.rss;
-                        data.memoryUsage.heapUsed = data.memoryUsage.heapUsed + clusterStats.memoryUsage.heapUsed;
-                        data.clusters.push({
-                            id: clusterStats.id,
-                            shards: clusterStats.shards.map(s => s.id),
-                            guilds: clusterStats.guilds,
-                            users: clusterStats.users,
-                            voice: clusterStats.voice,
-                            memoryUsage: clusterStats.memoryUsage,
-                            uptime: clusterStats.uptime,
-                        });
-                        return stringStats;
-                    } else return null;
-                });
-                await Promise.all(thing);
-                stream.resume();
-            });
-    
-            stream?.once('end', async () => {
-                // const addAllShards = new Array(this.options.maxShards).fill(undefined).map((_test, index) => {
-                //     if (data.shards.find((s: ShardStats) => s.id === index)) return null;
-                //     else data.shards.push({
-                //         // @ts-ignore
-                //         status: 'disconnected',
-                //         id: index,
-                //         latency: null,
-                //         guilds: 0,
-                //     });
-                // });
-                // await Promise.all(addAllShards)
-
-                return resolve(data);
-            });
-        });
+        return this.pubSub?.getStats(key || this.lockKey);
     };
 
     getRedis(): Redis.Redis | undefined {
