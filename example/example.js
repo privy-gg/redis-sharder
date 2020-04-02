@@ -1,6 +1,6 @@
 const RedisSharder = require('../dist/RedisSharder');
 
-const bot = new RedisSharder.GatewayClient('BOT_TOKEN', { 
+const bot = new RedisSharder.GatewayClient(require('./config.json').token, { 
     erisOptions: { maxShards: 1 },
     shardsPerCluster: 1, // must evenly go into the max shards. 
     lockKey: 'arcane-standard-1', // not needed but is VERY VERY important if you plan on running multiple bots with this sharding setup
@@ -27,6 +27,7 @@ bot.on('ready', async () => {
     console.log(output.flat().map(c=>`${c.name} - ${c.memberCount}`));
 
     console.log(await bot.getStats())
+    console.log(await bot.getStats('arcanestandard'))
 });
 
 bot.on('acquiredLock', () => { // incase you want to know idk

@@ -1,4 +1,4 @@
-import Redis, { CallbackFunction } from 'ioredis';
+import Redis from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
 import { Base, Shard, Guild } from 'eris';
 import { DataClient } from '../DateClient';
@@ -17,7 +17,7 @@ export class PubSub {
     private client: GatewayClient | DataClient;
     private options: any;
 
-    private returns: Map<string, CallbackFunction> = new Map();
+    private returns: Map<string, Function> = new Map();
     private evals: Map<string, any> = new Map();
     private stats: Map<string, any> = new Map();
 
@@ -55,7 +55,7 @@ export class PubSub {
         };
 
         if (channel === 'returnGuild') {
-            let toReturn: CallbackFunction | undefined = this.returns.get(`guild_${message.id}`);
+            let toReturn: Function | undefined = this.returns.get(`guild_${message.id}`);
             if (toReturn) {
                 toReturn(message);
                 this.returns.delete(`guild_${message.id}`);
@@ -69,7 +69,7 @@ export class PubSub {
         };
 
         if (channel === 'returnUser') {
-            let toReturn: CallbackFunction | undefined = this.returns.get(`user_${message.id}`);
+            let toReturn: Function | undefined = this.returns.get(`user_${message.id}`);
             if (toReturn) {
                 toReturn(message);
                 this.returns.delete(`user_${message.id}`);
@@ -97,7 +97,7 @@ export class PubSub {
 
         if (channel === 'returnEval') {
             if (!this.options.redisPassword) return;
-            let toReturn: CallbackFunction | undefined = this.returns.get(`eval_${message.id}`);
+            let toReturn: Function | undefined = this.returns.get(`eval_${message.id}`);
             if (toReturn) {
                 const evals = this.evals.get(message.id) || [];
                 evals.push(message.output);
@@ -146,8 +146,8 @@ export class PubSub {
         };
 
         if (channel === 'returnStats') {
-            let toReturn: CallbackFunction | undefined = this.returns.get(`stats_${message.id}`);
-            if (toReturn && message.key === this.client.lockKey) {
+            let toReturn: Function | undefined = this.returns.get(`stats_${message.id}`);
+            if (toReturn) {
                 const stats = this.stats.get(message.id) || [];
                 stats.push(message);
                 this.stats.set(message.id, stats);
@@ -156,13 +156,11 @@ export class PubSub {
                     if (Number(this.client.maxShards) / this.client.shardsPerCluster === stats.length) {
                         this.returns.delete(`stats_${message.id}`);
                         this.stats.delete(message.id);
-                        // @ts-ignore
                         toReturn(this.formatStats(stats));
                     };
                 } else if (Number(this.client.options.maxShards) / this.client.shardsPerCluster === stats.length) {
                     this.returns.delete(`stats_${message.id}`);
                     this.stats.delete(message.id);
-                    // @ts-ignore
                     toReturn(this.formatStats(stats));
                 };
             };
@@ -242,16 +240,19 @@ export class PubSub {
         });
     };
 
-    getStats(key: string): Promise<any | undefined> {
+    getStats(key: string, timeout? : number): Promise<any | undefined> {
         return new Promise((resolve, _reject) => {
             const id: string = `${this.client instanceof DataClient ? '' : this.client.user.id}:${Date.now()+Math.random()}`;
             this.returns.set(`stats_${id}`, resolve);
             this.pubRedis?.publish('stats', JSON.stringify({ key: key || this.client.lockKey, id: id }));
 
             setTimeout(() => {
+                const stats = this.stats.get(id) || [];
                 this.returns.delete(`stats_${id}`);
-                resolve(undefined);
-            }, 5000);
+                this.stats.delete(id);
+                resolve(this.formatStats(stats));
+                // resolve(undefined);
+            }, timeout || 5000);
         });
     };
 };
