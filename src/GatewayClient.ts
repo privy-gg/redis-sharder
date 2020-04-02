@@ -103,30 +103,11 @@ export class GatewayClient extends Eris.Client {
             delay: 100,
         });
 
-        if (this.stats.enabled) {
-            setInterval(async () => {
-                await this.redisConnection?.set(`${this.lockKey}:cluster:stats:${await this.getFirstShard()}`, JSON.stringify({
-                    guilds: this.guilds.size,
-                    users: this.users.size,
-                    voice: this.voiceConnections.size,
-                    shards: this.shards.map((s: Eris.Shard) => {
-                        return {
-                            status: s.status,
-                            id: s.id,
-                            latency: s.latency,
-                            guilds: this.guilds.filter(g => g.shard.id === s.id).length,
-                        };
-                    }),
-                    memoryUsage: {
-                        rss: process.memoryUsage().rss,
-                        heapUsed: process.memoryUsage().heapUsed, 
-                    },
-                    id: await this.getFirstShard(),
-                    uptime: this.uptime,
-                }), 'EX', 10);
-
-            }, this.stats.interval);
-        }
+        setInterval(() => {
+            if (this.fullyStarted) {
+                this.shards.find((s: Eris.Shard) => s.status === 'disconnected')?.connect();
+            };
+        }, 5000);
 
         this.pubSub = new PubSub({ redisHost: this.redisHost, redisPassword: this.redisPassword, redisPort: this.redisPort }, this);
     };
