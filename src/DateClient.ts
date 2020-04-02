@@ -70,4 +70,13 @@ export class DataClient {
         if (!this.redisPassword) return new Error('Evaling across clusters requires your redis instance to be secured with a password!');
         return this.pubSub?.evalAll(script);
     };
+
+    subscribeToEvent(event: string, func: Function): this {
+        this.pubSub?.sub(event, func);
+        return this;
+    };
+
+    publish(event: string, message: string): void {
+        this.pubSub?.pub(event, message);
+    };
 };

@@ -20,6 +20,7 @@ export class PubSub {
     private returns: Map<string, Function> = new Map();
     private evals: Map<string, any> = new Map();
     private stats: Map<string, any> = new Map();
+    private subs: Map<string, Function> = new Map();
 
     constructor(options:PubSubOptions, client: GatewayClient | DataClient) {
         this.client = client;
@@ -165,6 +166,11 @@ export class PubSub {
                 };
             };
         };
+
+        console.log(channel)
+
+        const sub = this.subs.get(channel);
+        if (sub) sub(message);
     };
 
     private formatStats(stats: any[]): Stats {
@@ -254,5 +260,15 @@ export class PubSub {
                 // resolve(undefined);
             }, timeout || 5000);
         });
+    };
+
+    sub(eventName: string, func: Function): void {
+        this.subs.set(eventName, func);
+        this.subRedis?.subscribe(eventName);
+    };
+
+    pub(eventName: string, message: string): void {
+        console.log('emitting event')
+        this.pubRedis?.publish(eventName, message);
     };
 };

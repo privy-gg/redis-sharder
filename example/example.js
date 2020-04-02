@@ -28,6 +28,12 @@ bot.on('ready', async () => {
 
     console.log(await bot.getStats())
     console.log(await bot.getStats('arcanestandard'))
+
+    bot.subscribeToEvent('testing', (message) => {
+        console.log(message)
+    });
+    
+    bot.publish('testing', Math.random());
 });
 
 bot.on('acquiredLock', () => { // incase you want to know idk
@@ -37,3 +43,4 @@ bot.on('acquiredLock', () => { // incase you want to know idk
 setInterval(() => { // this just showcases that stats do work
     if (Number(process.env.pm_id) === 0) bot.getStats().then(stats => console.log(stats));
 }, 5000);
+

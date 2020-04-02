@@ -47,7 +47,7 @@ export declare interface GatewayClient extends Eris.Client {
 
 // the good stuff
 
-export class GatewayClient extends Eris.Client {
+export class GatewayClient extends Eris.Client{
 
     redisPort: number | undefined;
     redisHost: string | undefined;
@@ -91,7 +91,7 @@ export class GatewayClient extends Eris.Client {
 
         this.initialize();
         this.setupListeners();
-    };
+    }
 
     private async initialize(): Promise<void> {
         this.redisConnection = new Redis(this.redisPort, this.redisHost, {
@@ -212,5 +212,14 @@ export class GatewayClient extends Eris.Client {
     evalAll(script: string) {
         if (!this.redisPassword) return new Error('Evaling across clusters requires your redis instance to be secured with a password!');
         return this.pubSub?.evalAll(script);
+    };
+
+    subscribeToEvent(event: string, func: Function): this {
+        this.pubSub?.sub(event, func);
+        return this;
+    };
+
+    publish(event: string, message: string): void {
+        this.pubSub?.pub(event, message);
     };
 };
