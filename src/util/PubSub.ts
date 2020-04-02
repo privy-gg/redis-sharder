@@ -145,9 +145,8 @@ export class PubSub {
         };
 
         if (channel === 'returnStats') {
-            if (!this.options.redisPassword) return;
             let toReturn: CallbackFunction | undefined = this.returns.get(`stats_${message.id}`);
-            if (toReturn) {
+            if (toReturn && message.key === this.client.lockKey) {
                 const stats = this.stats.get(message.id) || [];
                 stats.push(message);
                 this.stats.set(message.id, stats);
@@ -164,6 +163,11 @@ export class PubSub {
                     this.stats.delete(message.id);
                     // @ts-ignore
                     toReturn(this.formatStats(stats));
+
+
+
+
+                    // TODO: USE A DOT ENV FOR THE TOKEN IN THE EXAMPLE. IM TIRED OF PUSHING THE TOKEN
                 };
             };
         };
@@ -233,7 +237,7 @@ export class PubSub {
         return new Promise((resolve, _reject) => {
             const id: string = `${this.client instanceof DataClient ? '' : this.client.user.id}:${Date.now()+Math.random()}`;
             this.returns.set(`eval_${id}`, resolve);
-            this.pubRedis?.publish('eval', JSON.stringify({ id: id, script: script }));
+            this.pubRedis?.publish('eval', JSON.stringify({ id: id, script: script, clientid: this.client instanceof DataClient ? '' : this.client.user.id }));
 
             setTimeout(() => {
                 this.returns.delete(`eval_${id}`);
