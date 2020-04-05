@@ -5,7 +5,7 @@
   "main": "dist/RedisSharder.js",
   "scripts": {
     "build": "tsc",
-    "postinstall": "npm run build"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
