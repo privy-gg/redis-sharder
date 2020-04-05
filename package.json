@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/RedisSharder.js",
   "scripts": {
-    "build": "tsc",
-    "prepare": "tsc",
-    "postinstall": "tsc"
+    "build": "tsc .",
+    "prepare": "tsc .",
+    "postinstall": "tsc ."
   },
   "repository": {
     "type": "git",
