@@ -9,10 +9,10 @@ export interface Stats {
 };
 
 export enum ShardStatus {
-    READY,
-    HANDSHAKING,
-    DISCONNECTED,
-    CONNECTING,
+    READY = 'ready',
+    HANDSHAKING = 'handshaking',
+    DISCONNECTED = 'disconnected',
+    CONNECTING = 'ready',
 };
 
 export interface MemoryUsage {

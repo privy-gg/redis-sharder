@@ -167,8 +167,6 @@ export class PubSub {
             };
         };
 
-        console.log(channel)
-
         const sub = this.subs.get(channel);
         if (sub) sub(message);
     };
