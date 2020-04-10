@@ -148,7 +148,7 @@ export class PubSub {
 
         if (channel === 'returnStats') {
             let toReturn: Function | undefined = this.returns.get(`stats_${message.id}`);
-            if (toReturn) {
+            if (toReturn && this.client.lockKey === message.key) {
                 const stats = this.stats.get(message.id) || [];
                 stats.push(message);
                 this.stats.set(message.id, stats);
@@ -164,6 +164,10 @@ export class PubSub {
                     this.stats.delete(message.id);
                     toReturn(this.formatStats(stats));
                 };
+            } else {
+                const stats = this.stats.get(message.id) || [];
+                stats.push(message);
+                this.stats.set(message.id, stats);   
             };
         };
 
