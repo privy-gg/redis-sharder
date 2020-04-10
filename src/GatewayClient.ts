@@ -178,8 +178,8 @@ export class GatewayClient extends Eris.Client{
         });
     };
 
-    async getStats(key?: string): Promise<Stats> {
-        return this.pubSub?.getStats(key || this.lockKey);
+    async getStats(key?: string, timeout?: number): Promise<Stats> {
+        return this.pubSub?.getStats(key || this.lockKey, timeout);
     };
 
     private shardStatusUpdate(shard: Eris.Shard): void {

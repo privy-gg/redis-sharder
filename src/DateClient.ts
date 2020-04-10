@@ -50,8 +50,8 @@ export class DataClient {
         this.pubSub = new PubSub({ redisHost: this.redisHost, redisPassword: this.redisPassword, redisPort: this.redisPort }, this);
     };
 
-    async getStats(key?: string): Promise<Stats> {
-        return this.pubSub?.getStats(key || this.lockKey);
+    async getStats(key?: string, timeout?: number): Promise<Stats> {
+        return this.pubSub?.getStats(key || this.lockKey, timeout);
     };
 
     getRedis(): Redis.Redis | undefined {
