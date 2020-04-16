@@ -47,7 +47,14 @@ export class PubSub {
     };
 
     private async handleMessage(channel: string, msg: any) {
-        let message:any = JSON.parse(msg);
+        
+        let message:any;
+
+        try {
+            message = JSON.parse(msg);
+        } catch {
+            message = msg;
+        };
 
         if (channel === 'getGuild') {
             if (this.client instanceof DataClient) return;
