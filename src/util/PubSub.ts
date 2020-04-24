@@ -86,6 +86,7 @@ export class PubSub {
 
         if (channel === 'eval') {
             if (!this.options.redisPassword) return;
+            if (this.client instanceof DataClient) return;
             try {
                 let output = eval(message.script);
 
