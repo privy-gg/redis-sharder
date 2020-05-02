@@ -59,7 +59,11 @@ export class PubSub {
         if (channel === 'getGuild') {
             if (this.client instanceof DataClient) return;
             const guild = this.client.guilds.get(message.id);
-            if (guild) this.pubRedis?.publish('returnGuild', JSON.stringify(guild?.toJSON()));
+            if (guild) {
+                let data = guild?.toJSON();
+                delete data.members;
+                this.pubRedis?.publish('returnGuild', JSON.stringify(data));
+            };
         };
 
         if (channel === 'returnGuild') {
