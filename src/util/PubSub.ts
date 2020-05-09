@@ -249,9 +249,9 @@ export class PubSub {
 
     evalAll(script: string, timeout?: number): Promise<any | undefined> {
         return new Promise((resolve, _reject) => {
-            const id: string = `${this.client instanceof DataClient ? '' : this.client.user.id}:${Date.now()+Math.random()}`;
+            const id: string = `${this.client instanceof DataClient ? '' : this.client.user ? this.client.user.id : ''}:${Date.now()+Math.random()}`;
             this.returns.set(`eval_${id}`, resolve);
-            this.pubRedis?.publish('eval', JSON.stringify({ id: id, script: script, clientid: this.client instanceof DataClient ? '' : this.client.user.id }));
+            this.pubRedis?.publish('eval', JSON.stringify({ id: id, script: script, clientid: this.client instanceof DataClient ? '' : this.client.user ? this.client.user.id : '' }));
 
             setTimeout(() => {
                 this.returns.delete(`eval_${id}`);
@@ -262,7 +262,7 @@ export class PubSub {
 
     getStats(key: string, timeout? : number): Promise<any | undefined> {
         return new Promise((resolve, _reject) => {
-            const id: string = `${this.client instanceof DataClient ? '' : this.client.user.id}:${Date.now()+Math.random()}`;
+            const id: string = `${this.client instanceof DataClient ? '' : this.client.user ? this.client.user.id : ''}:${Date.now()+Math.random()}`;
             this.returns.set(`stats_${id}`, resolve);
             this.pubRedis?.publish('stats', JSON.stringify({ key: key || this.client.lockKey, id: id }));
 
