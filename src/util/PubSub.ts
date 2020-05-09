@@ -282,7 +282,6 @@ export class PubSub {
     };
 
     pub(eventName: string, message: string): void {
-        console.log('emitting event')
         this.pubRedis?.publish(eventName, message);
     };
 };
