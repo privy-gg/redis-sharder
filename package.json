@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/RedisSharder.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc .",
     "prepare": "npm run build",
     "preinstall": "npm run build"
   },
