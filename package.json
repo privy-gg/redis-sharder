@@ -1,12 +1,11 @@
 {
   "name": "@arcanebot/redis-sharder",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "",
   "main": "dist/RedisSharder.js",
   "scripts": {
-    "build": "tsc .",
-    "prepare": "npm run build",
-    "preinstall": "npm run build"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
