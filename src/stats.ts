@@ -2,6 +2,7 @@
 export interface Stats {
     guilds: number,
     users: number,
+    estimatedTotalUsers: number,
     voice: number,
     shards: ShardStats[],
     memoryUsage: MemoryUsage,
@@ -31,6 +32,7 @@ export interface RawClusterStats {
     id: number,
     guilds: number,
     users: number,
+    estimatedTotalUsers: number,
     voice: number,
     shards: ShardStats[],
     memoryUsage: MemoryUsage,

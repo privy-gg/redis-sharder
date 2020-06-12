@@ -138,6 +138,7 @@ export class PubSub {
                     stats: {
                         guilds: this.client.guilds.size,
                         users: this.client.users.size,
+                        estimatedTotalUsers: this.client.guilds.map(g => g.memberCount).reduce((a, b) => a+b),
                         voice: this.client.voiceConnections.size,
                         shards: this.client.shards.map((s: Shard) => {
                             return {
@@ -191,6 +192,7 @@ export class PubSub {
         const data:Stats = {
             guilds: 0,
             users: 0,
+            estimatedTotalUsers: 0,
             voice: 0,
             shards: [],
             memoryUsage: {
@@ -203,6 +205,7 @@ export class PubSub {
         stats.forEach((clusterStats: { key: string, id: string, stats: RawClusterStats }) => {
             data.guilds = data.guilds + clusterStats.stats.guilds;
             data.users = data.users + clusterStats.stats.users;
+            data.estimatedTotalUsers = data.estimatedTotalUsers + clusterStats.stats.estimatedTotalUsers;
             data.voice = data.voice + clusterStats.stats.voice;                    
             clusterStats.stats.shards.forEach((shard: ShardStats) => {
                 data.shards.push(shard);

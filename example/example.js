@@ -42,5 +42,6 @@ bot.on('acquiredLock', () => { // incase you want to know idk
 
 setInterval(() => { // this just showcases that stats do work
     if (Number(process.env.pm_id) === 0) bot.getStats().then(stats => console.log(stats));
+    bot.getStats().then(stats => console.log(stats));
 }, 5000);
 
