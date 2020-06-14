@@ -26,7 +26,7 @@ Join our [discord](https://discord.gg/JBwVquz). We expect you to know how to cod
 # Stats
 
 `<client>.getStats()` outputs a [Stats](https://github.com/arcanebot/redis-sharder/blob/master/src/stats.ts) object. Use this over `<client>.guilds.size`. 
-```
+```js
 {
   guilds: 9,
   users: 4099,
