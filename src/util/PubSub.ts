@@ -138,7 +138,7 @@ export class PubSub {
                     stats: {
                         guilds: this.client.guilds.size,
                         users: this.client.users.size,
-                        estimatedTotalUsers: this.client.guilds.map(g => g.memberCount).reduce((a, b) => a+b),
+                        estimatedTotalUsers: this.client.guilds.map(g => g.memberCount).reduce((a, b) => a+b, 0),
                         voice: this.client.voiceConnections.size,
                         shards: this.client.shards.map((s: Shard) => {
                             return {
