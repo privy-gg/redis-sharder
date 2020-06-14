@@ -15,6 +15,9 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 | [Arcane](https://arcanebot.xyz) | 74,000 | 96 |
 | [Server Captcha Bot](https://top.gg/bot/captcha) | 24,000 | 35 |
 
+### Help
+Join our [discord](https://discord.gg/JBwVquz). We expect you to know how to code. We will not spoonfeed you. Definitely look through the src of redis sharder so you can view some of the utilities it provides.
+
 # Installation
 
 - Add redis-sharder to your project. `npm install @arcanebot/redis-sharder`
