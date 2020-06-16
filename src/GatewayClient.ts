@@ -73,7 +73,7 @@ export class GatewayClient extends Eris.Client{
         super(token, options.erisOptions || {});
 
         if (!options) throw new Error('No options provided');
-        if (!options.shardsPerCluster) throw new Error('No function to get the first shard id provided.');
+        if (!options.shardsPerCluster) throw new Error('No ShardsPerCluster option provided');
 
         this.options.autoreconnect = true; // yes
 
