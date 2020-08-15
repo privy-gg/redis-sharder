@@ -12,8 +12,8 @@
     "url": "git+https://github.com/arcanebot/redis-sharder.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "arcanebot",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/arcanebot/redis-sharder/issues"
   },
