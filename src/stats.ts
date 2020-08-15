@@ -1,6 +1,7 @@
 
 export interface Stats {
     guilds: number,
+    unavailableGuilds: number,
     users: number,
     estimatedTotalUsers: number,
     voice: number,
@@ -26,11 +27,13 @@ export interface ShardStats {
     id: number,
     latency: number | null,
     guilds: number,
+    unavailableGuilds: number,
 };
 
 export interface RawClusterStats {
     id: number,
     guilds: number,
+    unavailableGuilds: number,
     users: number,
     estimatedTotalUsers: number,
     voice: number,
@@ -43,6 +46,7 @@ export interface ClusterStats {
     id: number,
     shards: number[],
     guilds: number,
+    unavailableGuilds: number,
     users: number,
     voice: number,
     memoryUsage: MemoryUsage,

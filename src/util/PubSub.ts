@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
-import { Base, Shard, Guild } from 'eris';
+import { Base, Shard, Guild, UnavailableGuild } from 'eris';
 import { DataClient } from '../DateClient';
 import { Stats, ShardStats, RawClusterStats } from '../stats';
 
@@ -136,7 +136,8 @@ export class PubSub {
                     key: this.client.lockKey,
                     id: message.id,
                     stats: {
-                        guilds: this.client.guilds.size,
+                        guilds: this.client.guilds.size + this.client.unavailableGuilds.size,
+                        unavailableGuilds: this.client.unavailableGuilds.size,
                         users: this.client.users.size,
                         estimatedTotalUsers: this.client.guilds.map(g => g.memberCount).reduce((a, b) => a+b, 0),
                         voice: this.client.voiceConnections.size,
@@ -146,6 +147,7 @@ export class PubSub {
                                 id: s.id,
                                 latency: s.latency,
                                 guilds: s.client.guilds.filter((g: Guild) => g.shard.id === s.id).length,
+                                unavailableGuilds: s.client.unavailableGuilds.filter((g: UnavailableGuild) => g.shard && g.shard.id === s.id).length,
                             };
                         }),
                         memoryUsage: {
@@ -191,6 +193,7 @@ export class PubSub {
     private formatStats(stats: any[]): Stats {
         const data:Stats = {
             guilds: 0,
+            unavailableGuilds: 0,
             users: 0,
             estimatedTotalUsers: 0,
             voice: 0,
@@ -204,6 +207,7 @@ export class PubSub {
 
         stats.forEach((clusterStats: { key: string, id: string, stats: RawClusterStats }) => {
             data.guilds = data.guilds + clusterStats.stats.guilds;
+            data.unavailableGuilds = data.unavailableGuilds + clusterStats.stats.unavailableGuilds;
             data.users = data.users + clusterStats.stats.users;
             data.estimatedTotalUsers = data.estimatedTotalUsers + clusterStats.stats.estimatedTotalUsers;
             data.voice = data.voice + clusterStats.stats.voice;                    
@@ -216,6 +220,7 @@ export class PubSub {
                 id: clusterStats.stats.id,
                 shards: clusterStats.stats.shards.map(s => s.id),
                 guilds: clusterStats.stats.guilds,
+                unavailableGuilds: clusterStats.stats.unavailableGuilds,
                 users: clusterStats.stats.users,
                 voice: clusterStats.stats.voice,
                 memoryUsage: clusterStats.stats.memoryUsage,
