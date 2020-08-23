@@ -113,7 +113,7 @@ export class GatewayClient extends Eris.Client{
     };
 
     private setupListeners() {
-        this.on('ready', () => {
+        this.on('shardPreReady', () => {
             this.redisLock.release(`${this.lockKey}:shard:identify`);
             this.hasLock = false;
             this.fullyStarted = true;
