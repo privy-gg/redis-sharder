@@ -113,7 +113,7 @@ export class GatewayClient extends Eris.Client{
     };
 
     private setupListeners() {
-        this.on('shardPreReady', () => {
+        this.on('ready', () => {
             this.redisLock.release(`${this.lockKey}:shard:identify`);
             this.hasLock = false;
             this.fullyStarted = true;
@@ -133,7 +133,7 @@ export class GatewayClient extends Eris.Client{
                 }, 2000);
             };
         });
-        this.on('shardReady', (id: number) => {
+        this.on('shardPreReady', (id: number) => {
             // @ts-ignore
             this.shardStatusUpdate(this.shards.get(id))
             if (this.shards.find((s: Eris.Shard) => s.status === 'disconnected') && this.fullyStarted === true) {
