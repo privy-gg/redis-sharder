@@ -11,3 +11,9 @@ const bot = new RedisSharder.GatewayClient(require('./config.json').token, {
 });
 
 bot.queue();
+
+// Stats work
+bot.on('ready', async () => {
+    const stats = await bot.getStats();
+    console.log(stats);
+});

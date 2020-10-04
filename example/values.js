@@ -11,3 +11,12 @@ const bot = new RedisSharder.GatewayClient(require('./config.json').token, {
 });
 
 bot.queue();
+
+// Fetch a guild and user
+bot.on('ready', async () => {
+    const guild = await bot.getGuildbyID('YOUR_GUILD_ID');
+    console.log(guild);
+
+    const user = await bot.getUserbyID('YOUR_USER_ID');
+    console.log(user);
+});
