@@ -12,8 +12,8 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 *As of 8/15/2020*. 
 | Name | Guild Count | Shard Count | 
 | - | -| - |
-| [Arcane](https://arcanebot.xyz) | 128,000 | 144 |
-| [Server Captcha Bot](https://top.gg/bot/captcha) | 32,000 | 45 |
+| [Arcane](https://arcanebot.xyz) | 197,000 | 224 |
+| [Server Captcha Bot](https://top.gg/bot/captcha) | 38,000 | 45 |
 
 ### Help
 Join our [discord](https://discord.gg/JBwVquz). We expect you to know how to code. We will not spoonfeed you. Definitely look through the src of redis sharder so you can view some of the utilities it provides.
@@ -22,6 +22,9 @@ Join our [discord](https://discord.gg/JBwVquz). We expect you to know how to cod
 
 - Add redis-sharder to your project. `npm install @arcanebot/redis-sharder`
 - Install and secure [Redis](https://redis.io/) on your machine. Redis Sharder requires redis to be secured with a password to use any eval functions because Redis is used for [Pub Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern). **PLEASE USE AUTHORIZATION!**
+
+# Examples
+You can view our quick start example [here](https://github.com/arcanebot/redis-sharder/blob/master/example/). It covers the basics to get you started with scaling your discord bot. You will need to create a `config.json` and supply your bot's token for the example to run.
 
 # Stats
 
