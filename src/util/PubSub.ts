@@ -103,8 +103,8 @@ export class PubSub {
                 if (output instanceof Base) output = output.toJSON();
 
                 this.pubRedis?.publish('returnEval', JSON.stringify({ output: output, id: message.id }));
-            } catch {
-                this.pubRedis?.publish('returnEval', JSON.stringify({ output: undefined, id: message.id }));
+            } catch (error) {
+                this.pubRedis?.publish('returnEval', JSON.stringify({ output: error, id: message.id }));
             };
         };
 
