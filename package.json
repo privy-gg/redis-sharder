@@ -19,6 +19,8 @@
     },
     "homepage": "https://github.com/arcanebot/redis-sharder#readme",
     "devDependencies": {},
-    "peerDependencies": {},
+    "peerDependencies": {
+        "eris": "^0.13.3"
+    },
     "dependencies": {}
 }
