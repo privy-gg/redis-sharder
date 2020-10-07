@@ -13,8 +13,6 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 - Tests/Examples
 - Documentation
 
-
-
 ### Clustering Solutions 
 - Kubernetes
 - Docker Swarm
@@ -22,7 +20,7 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 - NodeJS Cluster Module
 
 ### Users of Redis Sharder:
-*As of 8/15/2020*. 
+*As of 10/6/2020*. 
 | Name | Guild Count | Shard Count | 
 | - | -| - |
 | [Arcane](https://arcanebot.xyz) | 201,000 | 224 |
