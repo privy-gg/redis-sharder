@@ -2,6 +2,19 @@
 
 Redis sharder is a great solution for sharding with [Eris](https://github.com/abalabahaha/eris). Managing shards for your large discord bot can be a major headache but with Redis Sharder all you need to do is code your bot and not worry about the issues of spawning and managing tons of shards. Redis Sharder is almost a drop in replacement and uses Eris's internal sharding. Redis sharder is **not** a clustering solution. You will need to cluster your bot yourself via some means or a process manager.
 
+# 2.0.0 TODO
+- x16, x64, etc large bot sharding
+  - Wont be done until we know exactly how it works
+- Shared REST ratelimits
+  - This is something I want... but will be super complicated (and slow?)
+- Workers
+- Pub sub
+- Statistics
+- Tests/Examples
+- Documentation
+
+
+
 ### Clustering Solutions 
 - Kubernetes
 - Docker Swarm
