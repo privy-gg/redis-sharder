@@ -12,7 +12,7 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 *As of 8/15/2020*. 
 | Name | Guild Count | Shard Count | 
 | - | -| - |
-| [Arcane](https://arcanebot.xyz) | 197,000 | 224 |
+| [Arcane](https://arcanebot.xyz) | 201,000 | 224 |
 | [Server Captcha Bot](https://top.gg/bot/captcha) | 38,000 | 45 |
 
 ### Help
