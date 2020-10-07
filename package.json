@@ -1,6 +1,6 @@
 {
   "name": "@arcanebot/redis-sharder",
-  "version": "1.0.15",
+  "version": "2.0.0-alpha",
   "description": "",
   "main": "dist/RedisSharder.js",
   "scripts": {
