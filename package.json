@@ -4,8 +4,7 @@
     "description": "",
     "main": "dist/RedisSharder.js",
     "scripts": {
-        "build": "tsc",
-        "prepare": "npm run build"
+        "build": "tsc"
     },
     "repository": {
         "type": "git",
@@ -18,9 +17,16 @@
         "url": "https://github.com/arcanebot/redis-sharder/issues"
     },
     "homepage": "https://github.com/arcanebot/redis-sharder#readme",
-    "devDependencies": {},
+    "devDependencies": {
+        "@types/ioredis": "^4.17.4",
+        "@types/redlock": "^4.0.1"
+    },
     "peerDependencies": {
         "eris": "^0.13.3"
     },
-    "dependencies": {}
+    "dependencies": {
+        "eris": "^0.13.3",
+        "ioredis": "^4.17.3",
+        "ioredis-lock": "^4.0.0"
+    }
 }
