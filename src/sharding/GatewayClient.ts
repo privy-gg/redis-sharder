@@ -87,6 +87,13 @@ export class GatewayClient extends Client {
     }
 
     /**
+     * Get the internal redis instance
+     */
+    getRedis() {
+        return this.redis;
+    }
+
+    /**
      * Queue cluster for connect to discord gateway
      * @param largeBotSharding The amount of shards the bot can connect every 5 seconds. If you don't know what this is then chances are you don't have it for your bot
      */
