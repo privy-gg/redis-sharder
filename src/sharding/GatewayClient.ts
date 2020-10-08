@@ -3,6 +3,10 @@ import { XShardManager } from './XShardManager';
 import Redis from 'ioredis';
 import * as redisLock from 'ioredis-lock';
 
+/**
+ * TYPES AND STUFF
+ */
+
 export interface ShardingOptions {
     /** Key to use for distributed lock. If you are running multiple bots using redis-sharder then this should be unique */
     lockKey?: string;
@@ -44,6 +48,11 @@ interface GatewayClientEvents<T> extends ClientEvents<T> {
 export declare interface GatewayClient extends Client {
     on: GatewayClientEvents<this>;
 };
+
+
+/**
+ * The actual GatewayClient
+ */
 
 export class GatewayClient extends Client {
 
