@@ -26,12 +26,16 @@ export class GatewayClient extends Client {
     private redis: Redis.Redis;
     private lock: redisLock.Lock;
 
+    private gatewayOptions: GatewayClientOptions;
+    
     /**
      * @param token Discord bot token
      * @param options Options for eris, redis, and redis-sharder configuration
      */
     constructor(token: string, options: GatewayClientOptions) {
         super(token, options.erisOptions);
+
+        this.gatewayOptions = options;
 
         this.redis = new Redis(options.redisOptions);
         this.lock = redisLock.createLock(this.redis, {
@@ -55,9 +59,16 @@ export class GatewayClient extends Client {
     }
 
     /**
+     * Get the distributed lock key 
+     */
+    get key() {
+        return this.gatewayOptions.shardingOptions.lockKey || 'redis-sharder';
+    }
+
+    /**
      * Acquire the redis lock
      */
     private async acquireLock() {
-        await this.lock.acquire('test');
+        await this.lock.acquire(this.key);
     }
 }
