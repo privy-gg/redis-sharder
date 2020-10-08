@@ -32,5 +32,7 @@ declare module 'ioredis-lock' {
         extend(ttl: number): Promise<null | Error>;
         /** Release the lock */
         release(): Promise<any | Error>;
+        /** Whether or not the lock holds the lock */
+        _locked: Boolean;
     }
 }

@@ -1,4 +1,4 @@
-import { Client, ClientOptions } from 'eris';
+import { Client, ClientEvents, ClientOptions } from 'eris';
 import { XShardManager } from './XShardManager';
 import Redis from 'ioredis';
 import * as redisLock from 'ioredis-lock';
@@ -21,28 +21,60 @@ export interface GatewayClientOptions {
     shardingOptions: ShardingOptions;
 }
 
+interface GatewayClientEvents<T> extends ClientEvents<T> {
+	/**
+	 * @event
+	 * Fired when the client has acquired the lock to begin connecting. (Initial connect and when a shard disconnects)
+	 */
+    (event: 'acquiredLock', listener: () => void): T;
+    
+    /**
+	 * @event
+	 * Fired when the lock has been extended
+	 */
+    (event: 'extendedLock', listener: (duration: number) => void): T;
+    
+    /**
+	 * @event
+	 * Fired when the client has released the lock
+	 */
+	(event: 'releasedLock', listener: () => void): T;
+};
+
+export declare interface GatewayClient extends Client {
+    on: GatewayClientEvents<this>;
+};
+
 export class GatewayClient extends Client {
 
     private redis: Redis.Redis;
     private lock: redisLock.Lock;
 
     private gatewayOptions: GatewayClientOptions;
-    
+
     /**
      * @param token Discord bot token
      * @param options Options for eris, redis, and redis-sharder configuration
      */
     constructor(token: string, options: GatewayClientOptions) {
+        if (options.erisOptions.maxShards === 'auto' || !options.erisOptions.maxShards) {
+            throw new Error('Max shards cannot be set to "auto". Change to a dedicated number for redis sharder to work');
+        }
+
+        options.erisOptions.autoreconnect = false;
+
         super(token, options.erisOptions);
 
         this.gatewayOptions = options;
 
         this.redis = new Redis(options.redisOptions);
         this.lock = redisLock.createLock(this.redis, {
-            timeout: 20000,
+            timeout: +new Number(this.gatewayOptions.shardingOptions.shardsPerCluster) * 5000,
             retries: -1,
             delay: 1000,
         }); 
+
+        this.setupListeners();
     }
 
     /**
@@ -70,5 +102,59 @@ export class GatewayClient extends Client {
      */
     private async acquireLock() {
         await this.lock.acquire(this.key);
+
+        this.emit('acquiredLock');
+
+        return true;
+    }
+
+    /**
+     * Extend the current lock
+     * @param duration Duration (in milliseconds) to extend the lock by
+     */
+    private async extendLock(duration: number) {
+        try {
+            await this.lock.extend(duration);
+        } catch {
+            return false;
+        }
+
+        this.emit('extendedLock', duration);
+
+        return true;  
+    }
+
+    /**
+     * Release the lock
+     */
+    private async releaseLock() {
+        try {
+            await this.lock.release();    
+        } catch {
+            return false;
+        }
+
+        this.emit('releasedLock');
+
+        return true;
+    }
+
+    // TODO: 
+    /**
+     * Setup the ready/disconnected/etc listeners. You may want to call this if you mess with reloading events but I'm not sure if this will be exposed fully in 2.0
+     */
+    setupListeners() {
+        this.on('shardReady', () => {
+            this.extendLock(8000);
+        });
+
+        this.on('shardDisconnect', (_err, _id) => {
+            // TODO 
+        });
+
+        this.once('ready', () => {
+            
+            this.releaseLock();
+        });
     }
 }
