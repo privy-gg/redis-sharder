@@ -70,7 +70,7 @@ export class GatewayClient extends Client {
             throw new Error('Max shards cannot be set to "auto". Change to a dedicated number for redis sharder to work');
         }
 
-        options.erisOptions.autoreconnect = false;
+        // options.erisOptions.autoreconnect = false;
 
         super(token, options.erisOptions);
 
@@ -172,12 +172,9 @@ export class GatewayClient extends Client {
             this.extendLock(8000);
         });
 
-        this.on('shardDisconnect', (_err, _id) => {
-            // TODO 
-        });
+        this.on('shardDisconnect', (_err, _id) => {});
 
         this.once('ready', () => {
-            
             this.releaseLock();
         });
     }
