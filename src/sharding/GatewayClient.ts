@@ -3,11 +3,22 @@ import { XShardManager } from './XShardManager';
 import Redis from 'ioredis';
 import * as redisLock from 'ioredis-lock';
 
+export interface ShardingOptions {
+    /** Key to use for distributed lock. If you are running multiple bots using redis-sharder then this should be unique */
+    lockKey?: string;
+    /** How many shards to allocate per process. Any remainder will be put on the last cluster */
+    shardsPerCluster: number;
+    /** The specific cluster ID. Should be unique to each process and ZERO indexed */
+    clusterID: number;
+}
+
 export interface GatewayClientOptions {
     /** Eris options. View eris docs */
     erisOptions: ClientOptions;
     /** Redis connection options. View ioredis docs */
     redisOptions: Redis.RedisOptions;
+    /** Redis sharder options */
+    shardingOptions: ShardingOptions;
 }
 
 export class GatewayClient extends Client {
