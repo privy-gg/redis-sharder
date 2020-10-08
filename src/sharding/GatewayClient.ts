@@ -91,12 +91,27 @@ export class GatewayClient extends Client {
      * @param largeBotSharding The amount of shards the bot can connect every 5 seconds. If you don't know what this is then chances are you don't have it for your bot
      */
     async queue(largeBotSharding: number = 1) {
+        const shards = this.calcShards();
+        this.options.firstShardID = shards[0];
+        this.options.lastShardID = shards[1];
+
         if (largeBotSharding > 1) {
             this.shards = new XShardManager(this, largeBotSharding);
         }
 
         await this.acquireLock();
         this.connect();
+    }
+
+    private calcShards() {
+        const totalShards = +new Number(this.options.maxShards);
+        const spc = this.gatewayOptions.shardingOptions.shardsPerCluster;
+
+        const initial = this.gatewayOptions.shardingOptions.clusterID * spc;
+        const shards = [initial, initial + (spc - 1)];
+        if (totalShards - spc <= shards[1]) shards[1] = totalShards - 1;
+
+        return shards;
     }
 
     /**

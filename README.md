@@ -20,11 +20,18 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 - NodeJS Cluster Module
 
 ### Users of Redis Sharder:
-*As of 10/6/2020*. 
+*As of 10/7/2020*. 
 | Name | Guild Count | Shard Count | 
 | - | -| - |
-| [Arcane](https://arcanebot.xyz) | 201,000 | 224 |
-| [Server Captcha Bot](https://top.gg/bot/captcha) | 38,000 | 45 |
+| [Arcane](https://arcanebot.xyz) | 203,000 | 224 |
+| [Server Captcha Bot](https://top.gg/bot/captcha) | 38,000 | 50 |
+
+### How to determine shardsPerCluster & cluster count
+We recommend running 16 to 32 shards a cluster. In [Arcane's](https://arcanebot.xyz) case we have been able to push 32 shards stabily.
+```
+total_shards / shards_per_cluster -> round down = cluster count
+```
+Redis sharder will allocate shards_per_cluster to all processes except for the last process. The last process will be allocated any extras ontop of the shards_per_cluster. 
 
 ### Help
 Join our [discord](https://discord.gg/JBwVquz). We expect you to know how to code. We will not spoonfeed you. Definitely look through the src of redis sharder so you can view some of the utilities it provides.
