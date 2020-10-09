@@ -5,8 +5,8 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 # 2.0.0 TODO
 - x16, x64, etc large bot sharding
   - Wont be done until we know exactly how it works
-- Shared REST ratelimits
-  - This is something I want... but will be super complicated (and slow?)
+- ~~Shared REST ratelimits~~
+  - ~~This is something I want... but will be super complicated (and slow?)~~
 - Workers
 - Pub sub
 - Statistics
