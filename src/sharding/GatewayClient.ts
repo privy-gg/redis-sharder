@@ -2,6 +2,11 @@ import { Client, ClientEvents, ClientOptions } from 'eris';
 import { XShardManager } from './XShardManager';
 import Redis from 'ioredis';
 import * as redisLock from 'ioredis-lock';
+import { PubSub } from '../pubsub/PubSub';
+import { RequestOptions } from 'https';
+
+const https = require('https');
+const http = require('http');
 
 /**
  * TYPES AND STUFF
@@ -16,6 +21,12 @@ export interface ShardingOptions {
     clusterID: number;
 }
 
+export interface RestOptions {
+    proxyHost?: string;
+    proxyPort?: number;
+    proxyProtocol?: string;
+}
+
 export interface GatewayClientOptions {
     /** Eris options. View eris docs */
     erisOptions: ClientOptions;
@@ -23,6 +34,8 @@ export interface GatewayClientOptions {
     redisOptions: Redis.RedisOptions;
     /** Redis sharder options */
     shardingOptions: ShardingOptions;
+    /** Rest options */
+    restOptions: RestOptions;
 }
 
 interface GatewayClientEvents<T> extends ClientEvents<T> {
@@ -59,6 +72,9 @@ export class GatewayClient extends Client {
     private redis: Redis.Redis;
     private lock: redisLock.Lock;
 
+    // @ts-ignore
+    private pubsub: PubSub;
+
     private gatewayOptions: GatewayClientOptions;
 
     /**
@@ -83,7 +99,15 @@ export class GatewayClient extends Client {
             delay: 1000,
         }); 
 
+        this.pubsub = new PubSub(this.redis, { redisOptions: options.redisOptions });
+
         this.setupListeners();
+
+        if (options.restOptions.proxyHost && options.restOptions.proxyHost !== '') https.request = (reqOptions: RequestOptions) => {
+            if (reqOptions.host === 'discordapp.com') reqOptions.host = options.restOptions.proxyHost;
+            if (options.restOptions.proxyPort) reqOptions.port = options.restOptions.proxyPort;
+            return (options.restOptions.proxyProtocol === 'https' ? https.request(reqOptions) : http.request(reqOptions));
+        }
     }
 
     /**
