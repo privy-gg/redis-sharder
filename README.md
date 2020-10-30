@@ -16,7 +16,7 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 | [Server Captcha Bot](https://top.gg/bot/captcha) | 38,000 | 45 |
 
 ### Help
-Join our [discord](https://discord.gg/JBwVquz). We expect you to know how to code. We will not spoonfeed you. Definitely look through the src of redis sharder so you can view some of the utilities it provides.
+Help yourself. We don't provide support for this in any discord server, including Arcane Support. You will be banned. 
 
 # Installation
 
@@ -41,7 +41,7 @@ You can view our quick start example [here](https://github.com/arcanebot/redis-s
     {
       id: 0,
       shards: [Array],
-      guilds: 9,
+      guilds: 9, we
       unavailableGuilds: 0,
       users: 4099,
       voice: 0,
