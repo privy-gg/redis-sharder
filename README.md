@@ -1,3 +1,6 @@
+### ***REDIS-SHARDER IS NO LONGER MAINTAINED***
+> Redis-sharder still works, and works very well. Arcane has only moved away from redis-sharder because the bot has been moved into a microservice architecture and no longer uses Eris so it no longer makes sense to continue working on this project.   
+
 # redis-sharder
 
 Redis sharder is a great solution for sharding with [Eris](https://github.com/abalabahaha/eris). Managing shards for your large discord bot can be a major headache but with Redis Sharder all you need to do is code your bot and not worry about the issues of spawning and managing tons of shards. Redis Sharder is almost a drop in replacement and uses Eris's internal sharding. Redis sharder is **not** a clustering solution. You will need to cluster your bot yourself via some means or a process manager.
@@ -9,11 +12,11 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 - NodeJS Cluster Module
 
 ### Users of Redis Sharder:
-*As of 8/15/2020*. 
+*As of 12/3/2020*. 
 | Name | Guild Count | Shard Count | 
 | - | -| - |
-| [Arcane](https://arcanebot.xyz) | 197,000 | 224 |
-| [Server Captcha Bot](https://top.gg/bot/captcha) | 38,000 | 45 |
+| [Arcane](https://arcanebot.xyz) | 302,000 | 288 |
+| [Server Captcha Bot](https://top.gg/bot/captcha) | 46,000 | 60 |
 
 ### Help
 Help yourself. We don't provide support for this in any discord server, including Arcane Support. You will be banned. 
