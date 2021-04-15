@@ -12,11 +12,11 @@ Redis sharder is a great solution for sharding with [Eris](https://github.com/ab
 - NodeJS Cluster Module
 
 ### Users of Redis Sharder:
-*As of 12/3/2020*. 
+*As of 4/15/2021*. 
 | Name | Guild Count | Shard Count | 
 | - | -| - |
-| [Arcane](https://arcanebot.xyz) | 302,000 | 288 |
-| [Server Captcha Bot](https://top.gg/bot/captcha) | 46,000 | 60 |
+| [Arcane](https://arcanebot.xyz) | 551,000 | 288 |
+| [Server Captcha Bot](https://top.gg/bot/captcha) | 64,000 | 70 |
 
 ### Help
 Help yourself. We don't provide support for this in any discord server, including Arcane Support. You will be banned. 
