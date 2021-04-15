@@ -31,6 +31,8 @@ export interface GatewayClientOptions {
     getFirstShard(): Promise<number>,
     erisOptions: Eris.ClientOptions,
     webhooks?: WebhookOptions,
+
+    defaultPubSubTimeout?: number;
 };
 
 interface GatewayClientEvents<T> extends Eris.ClientEvents<T> {
@@ -59,6 +61,7 @@ export class GatewayClient extends Eris.Client{
         interval: 5000,
     }
     webhooks: WebhookOptions = {};
+    defaultPubSubTimeout?: number;
 
     getFirstShard: () => Promise<number> | number;
 
@@ -83,6 +86,7 @@ export class GatewayClient extends Eris.Client{
         this.getFirstShard = options.getFirstShard;
         this.shardsPerCluster = options.shardsPerCluster || 5;
         this.lockKey = options.lockKey || 'redis-sharder';
+        this.defaultPubSubTimeout = options.defaultPubSubTimeout;
 
         this.webhooks = options.webhooks || {};
 
@@ -109,7 +113,7 @@ export class GatewayClient extends Eris.Client{
             };
         }, 5000);
 
-        this.pubSub = new PubSub({ redisHost: this.redisHost, redisPassword: this.redisPassword, redisPort: this.redisPort }, this);
+        this.pubSub = new PubSub({ redisHost: this.redisHost, redisPassword: this.redisPassword, redisPort: this.redisPort, defaultTimeout: this.defaultPubSubTimeout }, this);
     };
 
     private setupListeners() {

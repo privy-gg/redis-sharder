@@ -8,6 +8,7 @@ export interface PubSubOptions {
     redisPort?: number,
     redisPassword?: string,
     redisHost?: string,
+    defaultTimeout?: number;
 };
 
 export class PubSub {
@@ -22,9 +23,10 @@ export class PubSub {
     private stats: Map<string, any> = new Map();
     private subs: Map<string, Function> = new Map();
 
-    constructor(options:PubSubOptions, client: GatewayClient | DataClient) {
+    constructor(options: PubSubOptions, client: GatewayClient | DataClient) {
         this.client = client;
         this.options = options;
+        if (!options.defaultTimeout) this.options.defaultTimeout = 1000 * 10;
 
         this.initialize();
         this.setupSubscriptions();
@@ -239,7 +241,7 @@ export class PubSub {
             setTimeout(() => {
                 this.returns.delete(`guild_${id}`);
                 resolve(undefined);
-            }, 2000);
+            }, this.options.defaultTimeout);
         });
     };
 
@@ -251,7 +253,7 @@ export class PubSub {
             setTimeout(() => {
                 this.returns.delete(`user_${id}`);
                 resolve(undefined);
-            }, 2000);
+            }, this.options.defaultTimeout);
         });
     };
 
@@ -264,7 +266,7 @@ export class PubSub {
             setTimeout(() => {
                 this.returns.delete(`eval_${id}`);
                 resolve(undefined);
-            }, timeout || 5000);
+            }, timeout || this.options.defaultTimeout);
         });
     };
 
@@ -280,7 +282,7 @@ export class PubSub {
                 this.stats.delete(id);
                 resolve(this.formatStats(stats));
                 // resolve(undefined);
-            }, timeout || 5000);
+            }, timeout || this.options.defaultTimeout);
         });
     };
 
