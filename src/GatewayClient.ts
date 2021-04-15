@@ -28,7 +28,7 @@ export interface GatewayClientOptions {
     shardsPerCluster?: number,
     stats?: StatsOptions,
     lockKey?: string,
-    getFirstShard(): Promise<number>,
+    getFirstShard(): Promise<number> | number,
     erisOptions: Eris.ClientOptions,
     webhooks?: WebhookOptions,
 
