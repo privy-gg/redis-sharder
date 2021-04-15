@@ -237,7 +237,7 @@ export class PubSub {
             this.pubRedis?.publish('getGuild', JSON.stringify({ id: id }));
 
             setTimeout(() => {
-                this.returns.delete(`user_${id}`);
+                this.returns.delete(`guild_${id}`);
                 resolve(undefined);
             }, 2000);
         });
