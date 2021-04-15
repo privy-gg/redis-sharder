@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import { GatewayClient } from '../GatewayClient';
 import { Base, Shard, Guild, UnavailableGuild } from 'eris';
-import { DataClient } from '../DateClient';
+import { DataClient } from '../DataClient';
 import { Stats, ShardStats, RawClusterStats } from '../stats';
 
 export interface PubSubOptions {

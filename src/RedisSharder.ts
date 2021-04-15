@@ -1,3 +1,3 @@
 export * from './GatewayClient';
-export * from './DateClient';
+export * from './DataClient';
 export * from './stats';
