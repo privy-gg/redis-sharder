@@ -75,6 +75,10 @@ export class GatewayClient extends Eris.Client{
     constructor(token: string, options: GatewayClientOptions) {
         super(token, options.erisOptions || {});
 
+        if (options.erisOptions.maxShards === 'auto') {
+            throw new Error('maxShards must be explicitly set. Eg. 16');
+        }
+
         if (!options) throw new Error('No options provided');
         if (!options.shardsPerCluster) throw new Error('No function to get the first shard id provided.');
 
@@ -153,8 +157,14 @@ export class GatewayClient extends Eris.Client{
     };
 
     private async calculateThisShards(): Promise<number[]> {
+        const totalShards = +new Number(this.options.maxShards);
         const firstShardID = await this.getFirstShard();
-        return [this.shardsPerCluster*firstShardID, this.shardsPerCluster*firstShardID+(this.shardsPerCluster-1)];
+
+        const initial = this.shardsPerCluster * firstShardID;
+        let shards = [initial, initial + (this.shardsPerCluster - 1)];
+        if (totalShards - this.shardsPerCluster <= shards[1]) shards[1] = totalShards - 1;
+
+        return shards;
     };
 
     async queue(): Promise<void> {
