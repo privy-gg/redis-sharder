@@ -122,7 +122,9 @@ export class GatewayClient extends Eris.Client{
 
     private setupListeners() {
         this.on('ready', () => {
-            this.redisLock.release(`${this.lockKey}:shard:identify`);
+            try {
+                this.redisLock.release(`${this.lockKey}:shard:identify`);
+            } catch {};
             this.hasLock = false;
             this.fullyStarted = true;
         });
@@ -147,7 +149,7 @@ export class GatewayClient extends Eris.Client{
             if (this.shards.find((s: Eris.Shard) => s.status === 'disconnected') && this.fullyStarted === true) {
                 const shard: Eris.Shard | undefined = this.shards.find((s: Eris.Shard) => s.status === 'disconnected');
                 if (shard) shard.connect();
-            } else if (this.hasLock && this.fullyStarted === true) {
+            } else if (this.hasLock) {
                 try {
                     this.redisLock.release(`${this.lockKey}:shard:identify`);
                     this.hasLock = false;
