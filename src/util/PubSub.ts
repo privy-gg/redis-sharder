@@ -171,12 +171,12 @@ export class PubSub {
                 this.stats.set(message.id, stats);
 
                 if (this.client instanceof DataClient) {
-                    if (Number(this.client.maxShards) / this.client.shardsPerCluster === stats.length) {
+                    if (Math.floor(Number(this.client.maxShards) / this.client.shardsPerCluster) === stats.length) {
                         this.returns.delete(`stats_${message.id}`);
                         this.stats.delete(message.id);
                         toReturn(this.formatStats(stats));
                     };
-                } else if (Number(this.client.options.maxShards) / this.client.shardsPerCluster === stats.length) {
+                } else if (Math.floor(Number(this.client.options.maxShards) / this.client.shardsPerCluster) === stats.length) {
                     this.returns.delete(`stats_${message.id}`);
                     this.stats.delete(message.id);
                     toReturn(this.formatStats(stats));
