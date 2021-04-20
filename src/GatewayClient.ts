@@ -164,7 +164,9 @@ export class GatewayClient extends Eris.Client{
 
         const initial = this.shardsPerCluster * firstShardID;
         let shards = [initial, initial + (this.shardsPerCluster - 1)];
-        if (totalShards - this.shardsPerCluster <= shards[1]) shards[1] = totalShards - 1;
+        if (shards[1] + this.shardsPerCluster > (totalShards - 1)) {
+            shards[1] = totalShards - 1;
+        }
 
         return shards;
     };
